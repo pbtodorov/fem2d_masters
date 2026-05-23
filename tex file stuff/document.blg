@@ -1,0 +1,66 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: document.aux
+Reallocating 'name_of_file' (item size: 1) to 6 items.
+The style file: plain.bst
+Reallocating 'name_of_file' (item size: 1) to 11 items.
+Illegal, another \bibstyle command---line 257 of file document.aux
+ : \bibstyle
+ :          {alpha}
+I'm skipping whatever remains of this command
+Database file #1: references.bib
+I was expecting a `,' or a `}'---line 699 of file references.bib
+ :  
+ :  pages   = {383 - 384},
+(Error may have been on previous line)
+I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for ""
+Too many commas in name 1 of "Shaocheng Ji, Shengsi Sun, Qian Wang, Denis Marcotte" for entry lamme_params
+while executing---line 1049 of file plain.bst
+Warning--empty journal in ice_quadrature_decrease_with_depth
+Warning--empty journal in lamme_params_ice
+Too many commas in name 1 of "Shaocheng Ji, Shengsi Sun, Qian Wang, Denis Marcotte" for entry lamme_params
+while executing---line 1090 of file plain.bst
+Warning--empty journal in lamme_params
+You've used 34 entries,
+            2118 wiz_defined-function locations,
+            716 strings with 9812 characters,
+and the built_in function-call counts, 9792 in all, are:
+= -- 939
+> -- 449
+< -- 4
++ -- 187
+- -- 144
+* -- 649
+:= -- 1691
+add.period$ -- 106
+call.type$ -- 34
+change.case$ -- 161
+chr.to.int$ -- 0
+cite$ -- 37
+duplicate$ -- 379
+empty$ -- 802
+format.name$ -- 144
+if$ -- 2011
+int.to.chr$ -- 0
+int.to.str$ -- 34
+missing$ -- 46
+newline$ -- 177
+num.names$ -- 68
+pop$ -- 200
+preamble$ -- 1
+purify$ -- 139
+quote$ -- 0
+skip$ -- 236
+stack$ -- 0
+substring$ -- 493
+swap$ -- 39
+text.length$ -- 4
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 106
+warning$ -- 3
+while$ -- 93
+width$ -- 36
+write$ -- 380
+(There were 4 error messages)

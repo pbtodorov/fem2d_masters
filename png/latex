@@ -1,0 +1,801 @@
+\documentclass{report}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[bulgarian]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{Числени симулации на сеизмични вълни в ледници}
+\author{Петър Тодоров, магистър 2. курс, специалност ИМММ}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+С настоящата дипломна работа целим числено да симулираме сеимична активност в среда, която наподобява реалните условия на българската антарктическа база. Програмата, която е разработена, има няколко режима на работа, могат да ѝ бъдат подадени конкретна среда или слой от две среди, един или повече източници, пукнатини по повърхността на ледника, които съдържат вода/въздух. По този начин на база симулации за конкретни точкови източници и в комбинация с различен "релеф" бихме могли да придобием повече представа за това как изглежда ледника и какви сеизмични събития се наблюдават в и под него. Програмата е верифицирана чрез подаване на конкретни параметри и начални условия, за които има аналитично решение.
+\end{abstract}
+
+\chapter{Описание на проблема}
+\chapter{Уравнения на модела и теоретични основи}
+\section{Теория на сеизмичните вълни}
+\subsection{Деформация}
+Нека разгледаме (тензора на) деформацията. Ще проследим разсъжденията от учебника по обща геофизика, част 1 на Иван Петков(стр. 15) \cite{geofizika_chast1}. \\
+Разглежда се еластична среда в координатна система $O_{xyz}$ и нека точките М(x,y,z) и N($x+\xi, y+\eta,z+\zeta$) са много близо една до друга. При деформация на средата те се преместват в съответно $M'(x',y',z')$ и $N'(x'+\xi', y'+\eta',z'+\zeta')$. Векторът на деформацията за М $\boldsymbol{MM'}$може да се означи с $\boldsymbol{U_M}=(u_M(x,y,z),v_M(x,y,z),w_M(x,y,z))$. Всичките му компоненти са непрекъснати функции на x, y, z, защото иначе би се получилила деформация с разрив. {\color{red}защо това не е естествено?} Аналогично  $\boldsymbol{U_N}=(u_N(x+\xi,y+\eta,z+\zeta),v_N(x+\xi,y+\eta,z+\zeta),w_N(x+\xi,y+\eta,z+\zeta))$. С вектора $\boldsymbol{\Delta U}$ означаваме $\boldsymbol{U_N}-\boldsymbol{U_M}\overset{\text{Taylor}}{=}\boldsymbol{U_M}+\boldsymbol{\nabla U_M}.(\xi,\eta,\zeta)-\boldsymbol{U_M}=(\delta u, \delta v, \delta w)^T$. В крайна сметка се получава:
+\begin{align*}
+    &\Delta u = \frac{\partial u}{\partial x} \xi + \frac{\partial u}{\partial y} \eta + \frac{\partial u}{\partial z} \zeta\\
+&\Delta v = \frac{\partial v}{\partial x} \xi + \frac{\partial v}{\partial y} \eta + \frac{\partial v}{\partial z} \zeta\\
+&\Delta u = \frac{\partial w}{\partial x} \xi + \frac{\partial w}{\partial y} \eta + \frac{\partial w}{\partial z} \zeta\\
+\end{align*}
+
+Към първото уравнение добавяме и изваждаме $\displaystyle \frac{1}{2}\frac{\partial v}{\partial x}\eta + \frac{1}{2}\frac{\partial w}{\partial x}\zeta$ и получаваме 
+\begin{align*}
+\Delta u = \frac{\partial u}{\partial x} \xi + \frac{1}{2}(\frac{\partial v}{\partial x}+\frac{\partial u}{\partial y} )\eta + \frac{1}{2}(\frac{\partial w}{\partial x}+\frac{\partial u}{\partial z} )\zeta-\frac{1}{2}(\frac{\partial v}{\partial x}-\frac{\partial u}{\partial y} )\eta + \frac{1}{2}(\frac{\partial u}{\partial z}-\frac{\partial w}{\partial x} )\zeta\\
+\end{align*}
+Аналогично получаваме и
+\begin{align*}
+\Delta v = \frac{\partial v}{\partial y} \eta + \frac{1}{2}(\frac{\partial v}{\partial x}+\frac{\partial u}{\partial y} )\xi + \frac{1}{2}(\frac{\partial w}{\partial y}+\frac{\partial v}{\partial z} )\zeta-\frac{1}{2}(\frac{\partial w}{\partial y}-\frac{\partial v}{\partial z} )\zeta + \frac{1}{2}(\frac{\partial v}{\partial x}-\frac{\partial u}{\partial y} )\xi
+\\
+\Delta w = \frac{\partial w}{\partial z} \zeta + \frac{1}{2}(\frac{\partial v}{\partial z}+\frac{\partial w}{\partial y} )\eta + \frac{1}{2}(\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x} )\xi+\frac{1}{2}(\frac{\partial w}{\partial y}-\frac{\partial v}{\partial z} )\eta - \frac{1}{2}(\frac{\partial u}{\partial z}-\frac{\partial w}{\partial x} ) \xi
+\end{align*}
+
+Като въведем означенията
+\begin{align*}
+\epsilon_{xx}=\frac{\partial u}{\partial x},
+\epsilon_{yy}=\frac{\partial v}{\partial y},
+\epsilon_{zz}=\frac{\partial w}{\partial z},
+\epsilon_{xy}=\frac{\partial u}{\partial y}+\frac{\partial v}{\partial x}\\
+\epsilon_{xz}=\epsilon_{yx}=\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x}\\
+\epsilon_{yz}=\epsilon_{zy}=\frac{\partial v}{\partial z}+\frac{\partial w}{\partial y}\\
+2\omega_{x,y}=-2\omega_{y,x}=\frac{\partial v}{\partial x}-\frac{\partial u}{\partial y}\\
+2\omega_{y,z}=-2\omega_{z,y}=\frac{\partial w}{\partial y}-\frac{\partial v}{\partial z}\\
+2\omega_{z,x}=-2\omega_{x,z}=\frac{\partial u}{\partial z}-\frac{\partial w}{\partial x}\\
+\end{align*}
+
+Горните уравнения получават вида
+\begin{equation}
+\begin{aligned}
+&\Delta u =\epsilon_{xx}\xi+\frac{1}{2}\epsilon_{xy}\eta+\frac{1}{2}\epsilon_{xz}\zeta+\omega_{zx}\zeta-\omega_{xy}\eta\\
+&\Delta v =\epsilon_{yy}\eta+\frac{1}{2}\epsilon_{xy}\xi+\frac{1}{2}\epsilon_{yz}\zeta+\omega_{xy}\xi-\omega_{yz}\zeta \\
+&\Delta w =\epsilon_{zz}\zeta+\frac{1}{2}\epsilon_{xz}\xi+\frac{1}{2}\epsilon_{yz}\eta+\omega_{yz}\eta-\omega_{zx}\xi
+\end{aligned}
+\label{eq:displacement}
+\end{equation}
+За да изясним физичния смисъл на коефициентите пред $\xi, \eta, \zeta$ ще разгледаме постановката от фигура ~\ref{fig:deformation}: координатна система $M\xi\eta\zeta$, като $M\xi, M\eta, M\zeta$ са успоредни на съответно $Ox, Oy, Oz$. Точката N се намира върху отсечката $M\xi$. След деформация на отсечката MN според формулите ~\ref{eq:displacement} се получава за $\boldsymbol{\Delta U}$:
+\begin{equation}
+\begin{aligned}
+&\Delta u_N =\epsilon_{xx}\xi &&\\
+&\Delta v_N =\frac{1}{2}\epsilon_{xy}\xi+\omega_{xy}\xi &&\\
+&\Delta w_N =\frac{1}{2}\epsilon_{xz}\xi-\omega_{zx}\xi &&
+\end{aligned}
+\label{eq:displacement_u}
+\end{equation}
+
+\begin{figure}[h]
+\centering
+\hspace*{-2cm} % Moves the whole figure to the left
+\includegraphics[width=1.3\linewidth]{displacement_after_transformation.png}
+
+\caption{\label{fig:deformation} Точките M,N,P както и образите им $M', N', P'$. Точките $M_1, N_1, P_1$ са проекциите на съответните образи върху равнината $M\xi\eta$. Точките $M_0$ и $N_0$ са проекцията съответно на $M_1$ и $N_1$ върху правата $M\xi$, а Q е такава, че $M_1Q=M_0N_0$ и $M_1Q||M_0N_0$, тоест $N_1,Q,N_0$ лежат на една права, която е перпендикулярна на $M_1Q$. R е аналогът за Q спрямо P.}
+\end{figure}
+
+Вижда се, че $\epsilon_{xx}=\frac{\Delta u}{\xi}$ е относителното удължение(единствено в посока $M\xi$) на дадена отсечка(или вектор), разполагаща се върху $M\xi$. По аналогичен начин можем да получим отместването на MP, която лежи върху $M\eta$:
+\begin{equation}
+\begin{aligned}
+&\Delta u_P =\frac{1}{2}\epsilon_{xy}\eta-\omega_{xy}\eta\\
+&\Delta v_P =\epsilon_{yy}\eta\\
+&\Delta w_P =\frac{1}{2}\epsilon_{yz}\eta+\omega_{yz}\eta
+\end{aligned}
+\label{eq:displacement_v}
+\end{equation}
+
+
+и съответно $\epsilon_{yy}=\frac{\Delta y}{\eta}$. Разделяме второто уравнение на \ref{eq:displacement_u} на $\xi$, първото на ~\ref{eq:displacement_v} на $\eta$, събираме ги и получаваме $\epsilon_{xy} = \frac{\Delta v_N}{\xi} + \frac{\Delta u_P}{\eta}$. Гледайки чертежа, виждаме, че $MM''$ и $MN'$ могат да се разбият на линейни комбинация от $\xi, \eta, \zeta$, а именно $MM'=MM_0+MM_1+M_1M', MN'=MN_0+N_0N_1+N_1N'$. Следователно $M'N'=M_0N_0+QN_1+(N_1N'-M_1M)'$. Тук векторът, колинеарен с $M\eta$ е $QN_1=\Delta v_N$. От друга страна, $\xi \approx M_0N_0 = M_1Q$, което, комбинирано с факта, че $MN\perp NQ$ получаваме $\frac{\Delta v_N}{\xi} \approx sin(\alpha) \overset{\text{$\alpha \approx0$}}{\approx} \alpha$. По аналогичен начн получаваме $\frac{\Delta u_P}{\eta} \approx \beta \Rightarrow \epsilon_{xy} \approx \alpha + \beta$, което е точно ъгълът, с който се изменя проекцията върху $M\xi\eta$ на деформацията на $\angle NMP$.\\
+
+Аналогично може да се покаже, че $\epsilon_{xz}, \epsilon_{yz}$ определят измененията на правите ъгли между направленията, успоредни на $M\xi, M\zeta$ и $M\eta, M\zeta$.\\
+Величините $\epsilon_{xx}, \epsilon_{yy}, \epsilon_{zz}$ се наричат линейни компоненти на деформацията, а $\epsilon_{xy}, \epsilon_{xz}, \epsilon_{yz}$- ъглови компоненти на деформацията.\\
+От уравненията ~\ref{eq:displacement_u} и ~\ref{eq:displacement_v} се вижда, че $\omega_{xy} = \frac{1}{2}(\frac{\Delta v_N}{\xi}-\frac{\Delta u_P}{\eta}) \approx \frac{\alpha - \beta}{2} \Rightarrow \omega_{xy}$ е ъгълът, на който разглежданата еластична среда се завърта в равнината $M\xi\eta$($\alpha$ радиана в положителна посока и $\beta$ радиана в отрицателна посока {\color{red}Защо?}. Аналогичен смисъл имат $\omega_{x,y},\omega_{y,x}$.
+
+При изучаването на деформацията имат значение относителните отмествания на точките, от което следва, че можем да се абстрахираме движението на еластичното тяло. Затова можем да въведем подвижна координатна система $Mxyz$, свързана с еластичното тяло, така че началото й да се слее с M от фигура ~\ref{fig:deformation} и спрямо нея да разглеждаме деформационните процеси. Въвеждаме функцията $\displaystyle \phi=\frac{1}{2}(\epsilon_{xx}x^2+\epsilon_{yy}y^2+\epsilon_{zz}z^2+\epsilon_{xy}xy+\epsilon_{yz}yz+\epsilon_{zx}zx)$. Спрямо подвижната координатна система вектора $\boldsymbol{\Delta U}$ можем да заместим с $\boldsymbol{U}$ и тогава от {\color{red}Защо точно тук може?} получаваме
+
+\begin{align*}
+u =\epsilon_{xx}x+\frac{1}{2}\epsilon_{xy}y+\frac{1}{2}\epsilon_{xz}z+\omega_{zx}z-\omega_{xy}y\\
+ v =\epsilon_{yy}y+\frac{1}{2}\epsilon_{xy}x+\frac{1}{2}\epsilon_{yz}z+\omega_{xy}x-\omega_{yz}z\\
+ w =\epsilon_{zz}z+\frac{1}{2}\epsilon_{xz}x+\frac{1}{2}\epsilon_{yz}y+\omega_{yz}y-\omega_{zx}x
+\end{align*}
+, което ни дава
+\begin{align*}
+u =\frac{\partial \phi}{\partial x} + \omega_{zx}z-\omega_{xy}y\\
+ v =\frac{\partial \phi}{\partial y}+\omega_{xy}x-\omega_{yz}z\\
+ w =\frac{\partial \phi}{\partial z}+\omega_{yz}y-\omega_{zx}x
+\end{align*}
+  , от което получаваме векторното урвнение $\boldsymbol{U}=grad\phi+rot\psi$, където $\displaystyle rot \psi=\omega\times r, \omega = \frac{1}{2}rotU$
+TO DO: 3h40m
+\subsection{Напрежение}
+Под влиянието на външни сили, пораждани от тектонски процеси, земната еластична среда изпитва деформация, зависеща от големината и направлението на тези сили. Създават се и други сили, които им противодействат и ги уравновесяват. Тези вътрешни сили се наричат еластични напрежения. Ако за даден обем с повърхност S разгледаме повърхностните сили dt за dS- малка част от повърхността, околност на т. А, то под еластично напрежение в т. А ще разбираме $\displaystyle \frac{dt}{dS}$=$\boldsymbol{t_n}$. Векторът $\boldsymbol{t_n}$ не съвпада с нормалата на S $\boldsymbol{n}$ по направление, затова може да се разбие на два вектора- $\boldsymbol{\sigma_n}$, колинеарен на $\boldsymbol{n}$ и наричан нормално напрежение и $\boldsymbol{\tau_{n}}$- тангенциално/срязващо напрежение.\\
+Да дефинираме величините, определящи напрежението в дадена точка на еластичната среда. За целта да вземем елементарната площ dS като триъгълник, чиито върхове лежат върху координатните оси на системата $O_{xyz}$. Чрез площта dS и и координатните равнини $O_{xy},O_{yz},O_{xz}$ се отсича тетраедър и за да остане той в равновесие, трябва сумата от силите да е 0. Означаваме силите върху стените на тетраедъра, перпендикулярни на $O_{xy},O_{yz},O_{xz}$, съответно с $\boldsymbol{t_z}, \boldsymbol{t_x}, \boldsymbol{t_y}$ и получаваме следното уравнение:
+\begin{align*}
+\boldsymbol{t_n}dS = \boldsymbol{t_x}S_{yz}+\boldsymbol{t_y}S_{xz}+\boldsymbol{t_z}S_{xy}
+\end{align*}
+Но всяко лице на стена на тетраедъра може да се изрази чрез проекция на dS върху съответната повърхнина, което дава следния вид на уравнението
+\begin{align*}
+\boldsymbol{t_n}dS = dS(\boldsymbol{t_x}cos(n,x)+\boldsymbol{t_y}cos(n,y)+\boldsymbol{t_z}cos(n,z))
+\end{align*}
+Означаваме с $t_{nz},t_{ny},t_{nz}$ дължините на проекциите на $\boldsymbol{t_n}$ върху съответните координатни оси, а проекциите на $\boldsymbol{t_x},\boldsymbol{t_y},\boldsymbol{t_z}$- съответно със $\sigma_x,\tau_{xy},\tau_{xz};\tau{yx},\sigma_y,\tau_{yz};\tau_{zx},\tau_{zy},\sigma_z$. Тогава можем да заменим горното векторно уравнение със следните скаларни
+\begin{align*}
+t_{nx} = \sigma_xcos(n,x)+\tau_{yx}cos(n,y)+\tau_{zx}cos(n,z)\\
+t_{ny} = \tau_{xy}cos(n,x)+\sigma_ycos(n,y)+\tau_{zy}cos(n,z)\\
+t_{nz} = \tau_{xz}cos(n,x)+\tau_{yz}cos(n,y)+\sigma_zcos(n,z)
+\end{align*}
+
+\begin{figure}[h]
+\centering
+\hspace*{-2cm} % Moves the whole figure to the left
+\includegraphics[width=1\linewidth]{stress_tensor_CauchyTh.png}
+\caption{\label{fig:frog}Сечение на еластичен обем преди и след прилагане на стрес P}
+\end{figure} 
+Деветте компоненти на  $\boldsymbol{t_x},\boldsymbol{t_y},\boldsymbol{t_z}$ определят напълно напрежението в дадена точка и нейната околност. Те са компонентите на тензора на напрежение.\\
+Ще докажем, че тензорът $\tau$ е симетричен. За целта ще разгледаме състоянието на движение на деформируемото тяло, което може да се приема за състояние на равновесие, като се въведат и инерционни сили съгласно известния принцип на Д'Аламбер в механиката(добавяме инерция и разглеждаме динамична задача, а не статична). Ако деформируемото тяло има обем V и повърхност S, принципът на Д'Аламбер ще се изрази в равновесие на инерционните, масовите и повърхностните сили и в равенство на техните моменти. относно координатните оси. Ако разгледаме и тук компонентите на преместването с u,v,w, разглеждани вече като функции и на времето, компонентите на масовите сили, действащи върху елементарни маси, означим с Xdm,Ydm,Zdm, където dm=$\rho$dV, а компонентите на напреженията с  $t_{nx},t_{ny},t_{nz}$, то условията за равновесие на силите и на моментите спрямо $O_x$ се изразяват с равенствата
+\begin{align}
+\int_V(X-\frac{d^2u}{dt^2})\rho dV+\int_St_{nx}dS=0 \notag \\
+\int_V(y(Z-\frac{d^2w}{dt^2})-z(Y-\frac{d^2v}{dt^2}))\rho dV+\int_S(yt_{nz}-zt_{ny})dS=0 \label{1}
+\end{align}
+Последователно получаваме
+\begin{align*}
+\int_St_{nx}dS=\int_S(\sigma_xcos(n,x)+\tau_{yx}cos(n,y)+\tau_{zx}cos(n,z))dS\overset{\text{Green}}{=}\int_V(\frac{\partial \sigma_x}{\partial x}+\frac{\partial \tau_{yx}}{\partial y}+\frac{\partial \tau_{zx}}{\partial z})dV
+\end{align*}
+\begin{align*}
+\rho \frac{d^2u}{dt^2} = \rho X + \frac{\partial \sigma_x}{\partial x}+\frac{\partial \tau_{yx}}{\partial y}+\frac{\partial \tau_{zx}}{\partial z}
+\end{align*}
+Аналогично и
+\begin{align}
+\rho \frac{d^2v}{dt^2} = \rho Y + \frac{\partial \tau_{xy}}{\partial x} + \frac{\partial \sigma_y}{\partial y}+\frac{\partial \tau_{zy}}{\partial z} \label{2}
+\\
+\rho \frac{d^2v}{dt^2} = \rho Y + \frac{\partial \tau_{xy}}{\partial x} + \frac{\partial \sigma_y}{\partial y}+\frac{\partial \tau_{zy}}{\partial z} \\ \notag
+\end{align}
+Това са уравненията на движение на деформируемото тяло. Вижда се, че при констатно напрежение движение няма. От друга страна 
+\begin{align*}
+\int_S(yt_{nz}-zt_{ny})dS=\int_S((y\tau_{xz}-z\tau_{xy})cos(n,x)+(y\tau_{yz}-z\sigma_y)cos(n,y)
++(y\sigma_z-z\tau_{zy})cos(n,z))dS\\
+\overset{\text{Green}}{=} \int_V(\frac{\partial (y\tau_{xz}-z\tau_{xy})}{\partial x}
++\frac{\partial (y\tau_{yz}-z\sigma_y)}{\partial y}
++ \frac{\partial (y\sigma_z-z\tau_{zy})}{\partial z})dV
+\end{align*}
+За произволно V, следователно като комбинираме с другия интеграл от \ref{1}, получаваме
+\begin{align*}
+(y(Z-\frac{d^2w}{dt^2}) - z(Y-\frac{d^2v}{dt^2}))\rho + \frac{\partial (y\tau_{xz} -z\tau_{xy})}{\partial x}+\frac{\partial (y\tau_{yz}-z\sigma_y)}{\partial y} + \frac{\partial (y\sigma_z-z\tau_{zy})}{\partial z} = 0
+\end{align*}
+Като вземем предвид и \ref{2} получаваме
+\begin{align*}
+-y\frac{\partial \tau_{zx}}{\partial x}- y\frac{\partial \tau_{zy}}{\partial y} - y\frac{\partial \sigma_{z}}{\partial z} +  z\frac{\partial \tau_{yx}}{\partial x}+z\frac{\partial \tau_{yz}}{\partial z} +z\frac{\partial \sigma_{y}}{\partial y} + y\frac{\partial \tau_{zx}}{\partial x}\\ - z\frac{\partial \tau_{yx}}{\partial x}+\tau_{zy} + y\frac{\partial \tau_{zy}}{\partial y} - z\frac{\partial \sigma_{y}}{\partial y} + y\frac{\partial \sigma_{z}}{\partial z} - z\frac{\partial \tau_{yz}}{\partial z} - \tau_{yz} = 0
+\end{align*}
+Откъдето след съкращаване виждаме, че $\tau_{zy}=\tau_{yz}$ и аналогично $\tau_{xy}=\tau_{yx}$ и $\tau_{zx}=\tau_{xz}$
+\subsection{Модул на Юнг}
+Разглеждаме цилиндричен обем с дължина l, диаметър d и сечение S. В горната част обемът е закрепен, а в долната му прилагаме сила P, насочена надолу по $O_x$. След деформацията под влияние на P обемът ще получи удължение $\Delta l$. Лесно е да се види, че за случая $\sigma_x = a_{11}\epsilon_{xx}$, но тъй като $\displaystyle \sigma_x = \frac{P}{S}, \epsilon_{xx}=\frac{\Delta l}{l}$, то $\displaystyle \frac{\Delta l}{l}=\frac{\sigma_x}{E}$, където Е се нарича модул на Юнг или модул на надлъжна еластичност. Числото $\displaystyle \sigma = \frac{\frac{\Delta d}{d}}{\frac{\Delta l}{l}}$ се нарича модул на напречното свиване или коефициент на Поасон. 
+
+\subsection{Зависимост между деформация и напрежение в изотропна среда}
+
+Да разгледаме паралелепипед от еластичната среда с ръбове, успоредни на осите на координатната система $O_{xyz}$. Нека стените му се намират под нормалните напрежения $\sigma_x, \sigma_y, \sigma_z$. За удължението му в посока $O_x$ получаваме $\displaystyle \epsilon_{xx}=\frac{\sigma_x}{E}-\sigma \frac{\sigma_y}{E}-\sigma \frac{\sigma_z}{E}= \frac{1}{E}(\sigma_x - \sigma (\sigma_y + \sigma_z))$. Аналогично извеждаме за y и z и получаваме 
+\begin{align}
+\epsilon_{xx}= \frac{1}{E}(\sigma_x - \sigma (\sigma_y + \sigma_z)) \label{4} \\
+\epsilon_{yy}= \frac{1}{E}(\sigma_y - \sigma (\sigma_x + \sigma_z)) \nonumber \\
+\epsilon_{zz}= \frac{1}{E}(\sigma_z - \sigma (\sigma_x + \sigma_y)) \nonumber
+\end{align}
+Откъдето получаваме 
+\begin{align}
+\theta = \epsilon_{xx}+\epsilon_{yy}+\epsilon_{zz}= \frac{1}{E}(\sigma_x + \sigma_y + \sigma_z)(1 - 2\sigma) \label{5}
+\end{align}
+Към \ref{4} прибавяме и изваждаме $\displaystyle \frac{\sigma \sigma_x}{E}$, комбинираме с \ref{5} и получаваме 
+$\displaystyle \epsilon_{xx} = \frac{\sigma_x}{E}(1+\sigma)-\frac{\sigma}{1-2\sigma}\theta$
+, откъдето следват пряко уравненията 
+\begin{align*}
+\sigma_x = \frac{E}{1+\sigma}\epsilon_{xx} + \frac{E\sigma}{(1-2\sigma)(1+\sigma)}\theta\\
+\sigma_y = \frac{E}{1+\sigma}\epsilon_{yy} + \frac{E\sigma}{(1-2\sigma)(1+\sigma)}\theta\\
+\sigma_z = \frac{E}{1+\sigma}\epsilon_{zz} + \frac{E\sigma}{(1-2\sigma)(1+\sigma)}\theta
+\end{align*}
+Ако положим $\displaystyle \lambda=\frac{E\sigma}{(1-2\sigma)(1+\sigma)}, \mu = \frac{1}{2}\frac{E}{1+\sigma}$, то получаваме
+\begin{align*}
+\sigma_x = 2\mu\epsilon_{xx} + \lambda\theta\\
+\sigma_y = 2\mu\epsilon_{yy} + \lambda\theta\\
+\sigma_z = 2\mu\epsilon_{zz} + \lambda\theta
+\end{align*}
+, като $\displaystyle E=\mu \frac{3\lambda+2\mu}{\lambda+\mu}, \sigma=\frac{\lambda}{2(\lambda+\mu)}$ 
+\\
+Сега ще намерим зависимостта между тангенциалното напрежение и компонентите на деформацията(Фиг 1). Разглеждаме паралелепипед, чиито ръбовеса успоредни на координатните оси $O_x,O_y,O_z$ и нека вземем вертикалното му сечение- правоъгълника ABCD. Да впишем в него друг паралелепипед с вертикално сечение $A_1B_1C_1D_1$. Под действието на напрежение Р(отговаря на $\sigma_z$), насочено вертикално нагоре, паралелепипедите ще се деформират, като вертикалните ръбове ще се удължат, а хоризонталните ще се свият. Правоъгълникът ABCD ще се деформита в $A'B'C'D'$, a $A_1B_1C_1D_1$ в успоредника $A'_1B'_1C'_1D'_1$. За простота може да се счита, че отсечките AD и $A'D'$ остават на една линия. Ъгълът $\phi$ се деформира във $\phi + \Delta \phi$. Нека дължината на $DC_1$ e S, a дължината на $D_1C_1$ е $S_1$. Напрежението върху $DC_1$ e Р, тоест силата е PS, което значи че напрежението върху $S_1C_1$ e $\displaystyle \frac{PS}{S_1}=Pcos\phi$. Тангецнциалното напрежение $\tau$, действащо върху $D_1C_1$ е $\tau_{D_1C_1}=Pcos\phi sin\phi$(Фиг. 2).
+
+\begin{figure}[h]
+\centering
+\hspace*{-2cm} % Moves the whole figure to the left
+\includegraphics[width=1.3\linewidth]{both_shear_stress.png}
+\caption{\label{fig:frog}Сечение на еластичен обем преди и след прилагане на стрес P}
+\end{figure} 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\linewidth]{shear.png}
+\caption{\label{fig:frog}Големината на вектора $\tau$ е проекцията на вектора на напрежението върху $D_1C_1$ или $Pcos\phi*cos(90^{\circ} - \phi)=Pcos\phi *sin\phi$}
+\end{figure} 
+
+След деформацията от една страна имаме $\displaystyle tg(\phi + \Delta \phi)=\frac{D'_1D'}{D'C'_1}$, от друга страна предвид $tg \Delta \phi \approx \Delta \phi, tg^2 \Delta \phi \approx 0$
+получаваме \\
+$\displaystyle tg(\phi + \Delta \phi)=\frac{tg \phi + tg \Delta \phi}{1-tg \phi tg \Delta \phi}=(tg \phi + tg \Delta \phi)(1+tg \phi tg \Delta \phi)=tg \phi + tg^2 \phi tg \Delta \phi + tg \Delta \phi=tg \phi + \Delta \phi(1 + \tg^2 \phi)=tg \phi + \frac{\Delta \phi}{cos^2 \phi}$. Като вземем предвид, че $\displaystyle \frac{\Delta l}{l} = \frac{\sigma_z}{E} = \frac{P}{E}$ и че $\displaystyle \frac{\Delta d}{d}=\sigma \frac{\sigma_z}{E}$, то следва че 
+$\displaystyle \frac{D'_1D'}{D_1D}=1+\frac{P}{E}\xrightarrow{}
+D'_1D'=D_1D(1+\frac{P}{E})$ и $\frac{D'C_1'}{DC_1}=1-\sigma \frac{P}{E}\xrightarrow{}
+D'C'_1=DC_1(1-\sigma \frac{P}{E})$\\
+При малки $\displaystyle \frac{P}{E}$ това дава $\displaystyle tg(\phi + \Delta \phi)= \frac{D'_1D'}{D'C'_1} = \frac{D_1D}{DC_1} \frac{1+\sigma \frac{P}{E}}{1-\sigma \frac{P}{E}}=tg \phi (1+\frac{P}{E})(1+\frac{P}{E}) \approx tg \phi (1+\frac{P}{E}+\sigma \frac{P}{E})$. Приравняваме двата израза и получаваме $\displaystyle \frac{\Delta \phi}{cos^2 \phi} = tg\phi (\frac{P}{E}+\sigma \frac{P}{E}) \xrightarrow[]{} \Delta \phi = sin \phi cos \phi \frac{1+\sigma}{E}P = \frac{1+\sigma}{E}\tau_{D_1C_1}$\\
+По подобен начин се получава $\displaystyle \tau_{C_1B_1}=Psin \phi cos \phi$, тоест $\tau_{C_1B_1}=\tau_{D_1C_1}=\tau$. Аналогично се показва и че $\displaystyle \Delta \psi = \frac{1+\sigma}{E}\tau_{C_1B_1} \xrightarrow{} \Delta \phi = \Delta \psi$, където $\psi = \angle B_1C_1C$, a $\psi+\Delta \psi=\angle B'_1C'_1C'$ следователно $\tau=2*\mu \Delta \phi$\\
+Ъгъл $D_1C_1B_1$ се е изменил с $2\displaystyle \Delta \phi=\frac{\partial u}{\partial z}+\frac{\partial v}{\partial x}=\epsilon_{xz}$. В крайна сметка получихме
+\begin{align*}
+\tau_{xz}=\mu\epsilon_{xz}\\
+\tau_{xy}=\mu\epsilon_{xy}\\
+\tau_{yz}=\mu\epsilon_{yz}
+\end{align*}
+
+\subsection{Гранични условия}
+
+Границата между земя и въздух $\Gamma_F$ се характеризира с това, че напрежението в посока на нормалния вектор на повърхността е нулево, или по-конкрено $\displaystyle \sum_{j=1}^{3} \sigma_{ij}n_j = 0$,  i=1,2,3. За границата между два слоя с различни характеристики(земя/мантия или в случая ледник/земя,означаваме с $\Gamma_L$) искаме преместванията и напреженията от двете страни да са еднакви във всеки момент от времето.
+\begin{align*}
+u_1(x,y,z+,t)=u_2(x,y,z-,t)\\
+v_1(x,y,z+,t)=v_2(x,y,z-,t)\\
+w_1(x,y,z+,t)=w_2(x,y,z-,t)\\
+\sigma_z(x,y,z+,t)=\sigma_z(x,y,z-,t)\\
+\tau_{xz}(x,y,z+,t)=\tau_{xz}(x,y,z-,t)\\
+\tau_{yz}(x,y,z+,t)=\tau_{yz}(x,y,z-,t)
+\end{align*}
+
+Друг вид "граници" са тези в края на взетия от нас регион. Въпреки, че там няма промяна в характеристиките на средата, се напрупва числена грешка- създаването на абсорбиращи граници е доста сложна задача, затова ние ще заобиколим този проблем, като занулим отместването по възлите от изкуствените граници.
+
+
+\section{Метод на крайните елементи}
+\subsection{Векторно-матрична форма, размерности, стойности на параметрите}
+Преди да пристъпим към числените решения, нека първо представим досегашните резултати(пренебрегваме масовите сили, тъй като в сравнение с напреженията, достигащи хиляди нютони на квадратен метър, са нищожни) във векторно-матрична форма:
+\begin{align}
+\rho \ddot{\mathbf{u}}- \nabla . \sigma= \mathbf{f}(\mathbf{x}), \mathbf{x} \in \Omega \label{6}\\
+\sigma = 2\mu \epsilon (\mathbf{u})+\lambda(\nabla . \mathbf{u})E, \mathbf{x} \in \Omega \label{7}\\
+\sigma . \mathbf{n} = \mathbf{0}, \mathbf{x} \in \Gamma_F \label{8}\\
+\mathbf{u}_-=\mathbf{u}_+, \mathbf{x} \in \Gamma_L \label{9}
+\end{align}
+, където 
+\[
+\mathbf{u} = 
+\begin{pmatrix}
+u(\mathbf{x},t)\\v(\mathbf{x},t)\\w(\mathbf{x},t)
+\end{pmatrix},
+\epsilon = \frac{1}{2}(\nabla \mathbf{u} + (\nabla \mathbf{u})^T)
+\]
+\[
+\sigma = 
+\begin{pmatrix}
+\sigma_{x} & \tau_{xy} & \tau_{xz} \\
+\tau_{yx} & \sigma_{y} & \tau_{yz} \\
+\tau_{zx} & \tau_{zy} & \sigma_z
+\end{pmatrix}
+,
+E=
+\begin{pmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+\]
+Величините, които  участват имат следните размерности:
+
+\begin{align*}
+[\rho ]=\frac{M}{L^3} \\
+[u_i]=L\\
+[\epsilon_{ij}]=1\\
+[\lambda]=[\mu ]=[\sigma_{ij}]=\frac{M}{T^2L}\\
+[f_i]=\frac{M}{L^2T^2}\\
+\end{align*}
+За нашите цели плътността на леда би варирала между 300 и 900 kg/$m^3$ в зависимост от дълбочината, а на скалата- между 1500 и 2700 kg/$m^3$.\\
+https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2009JB007134 ни дава следната зависимост за отношението между $\lambda$ и $\mu$ за скали. За леда- According to (Schulson, 1999), the standard value to use for poly-crystalline ice at $-5^oC$ are 9.0 GPa for Young's modulus and 0.33 for Poisson ratio. Модулът на Юнг е $9.10^9Pa$, а коефициентът на Поасон е $\displaystyle \frac{1}{3}$, което ни дава $\displaystyle \lambda = \frac{27}{4}.10^9Pa$ и $\displaystyle \mu=\frac{27}{8}10^9Pa$.
+От дипломната на Вальо: (Cuffey  Paterson, 2010) са изследвали плътността на ледници от Антарктида: плътността на леда нараства пропорционално на квадратния корен от дълбочината. При дълбочина 0 тя е около 300 $kg/m^3$, при 120m дълбочина имаме $900kg/m^3$. Следователно $\rho(-h)=300+\sqrt{h*3000}$
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.38\linewidth]{lambda-mu-limestone.png}
+\caption{\label{fig:frog}Стойности на $\lambda$ и $\mu$ за различни скали}
+\end{figure}
+
+\subsection{Метод на крайните елементи}
+
+Следим обясненията на МКЕ от Larson \cite{larsonfem}:
+Методът на крайните елементи се използва за решаване на диференциални уравнения в области със сложна геометрия. Областта се разбива на крайни елементи(наричаме това триангулация), които в едномерния случай са интервали с общи краища, в двумерния случай може да са произволна форма(най-често триъгълници, квадрати или шестоъгълници) и в триизмерния случай най-често са тетраедри. 
+
+\subsection{Пространството на по части линейни полиноми}
+
+Разбиването цели да позволи използването на по части полиноми върху областта. Нека разгледаме как става това за линейни функции, аналогично е за полиноми от по-висока степен: с $P_1(K)$ ще означим пространството от линейни полиноми върху произволен елемент K.
+
+$P_1(K)=
+\begin{cases}
+\{v:v=a+bx, x \in K, a, b \in \mathbb{R}\} & \text{за 1D,}\\
+\{v:v=a+bx+cy, (x,y) \in K, a, b, c \in \mathbb{R}\} & \text{ за 2D триъгълник,}\\
+\{v:v=a+bx+cy+dz, (x,y,z) \in K, a, b, c, d \in \mathbb{R}\} & \text{за 3D тетраедър.}
+\end{cases}
+$ \\
+Обръщаме внимание, че всеки полином се определя еднозначно от стойностите си в ъглите/краищата на К.Това значи, че всяко v може да се запише като 
+$
+\text{v} =
+\begin{cases} 
+\lambda_1\alpha_1+\lambda_2\alpha_2 & \text{в } 1D, \\
+\lambda_1\alpha_1+\lambda_2\alpha_2+\lambda_3\alpha_3 & \text{в } 2D, \\
+\lambda_1\alpha_1+\lambda_2\alpha_2+\lambda_3\alpha_3+\lambda_4\alpha_4 & \text{в } 3D
+\end{cases}
+$
+ където $\alpha_i=v(N_i)$(с $N_i$ сме означили върховете на елемента), a $\lambda_j$ са базисни линейни функции, такива че $\lambda_j(N_i)=
+\begin{cases} 
+1 & \text{, } i=j, \\
+0 & \text{, } i \neq j \\
+\end{cases}$
+. Представяме графика на $\lambda_i$ за 1D и 2D за така наречените единични елементи(интервала [0,1] и триъгълника с координати (0,0),(1,0),(0,1)):
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{hatFunc1D.png}
+\caption{\label{fig:frog}В 1D случая $\lambda_1=x$ и $\lambda_2=1-x$}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{hatFunc2D.png}
+\caption{\label{fig:frog}В 2D случая $\lambda_1=1-y-x$, $\lambda_2=x$ и $\lambda_3=y$}
+\end{figure}
+При дадена триангулация на дадена област $\mathcal{K}$=$\{K_i\}_{i=1}^n$ на n елемента ще конструираме по части линейни полиноми, като наложим изисквания върху всяко $K_i$ всяка функция v да е от $P_1(K_i)$ и да е непрекъсната по границите между елементите. Така получаваме пространство от непрекъснати по части линейни полиноми $V_h=\{v:v \in C^0(\Omega), v|_{K_i} \in P_1(K_i), \forall K_i \in \mathcal{K}\}$. Тук с $C^0(\Omega)$ сме означили пространството от всички непрекъснати функции върху $\Omega$. Върховете на триъгълниците от $\mathcal{K}$ ще наричаме още възли. Стойностите във възлите определят по единствен начин функция от $P_1(K_i)$ за всяко $K_i$ от $ \mathcal{K} $ и следователно всяка функция от $V_h$ се определя еднозначно от стойностите си във възлите. Сега, нека има две функции $v_1, v_2 \in V_h$ с еднакви стойности във всички възли и нека $K_1$ и $K_2$ са съседни елементи. Щом $v_1$ и $v_2$ са линейни полиноми в $K_1$ и $K_2$, то те са линейни и в общата им стена(ръб), а щом са линейни там и съвпадат в краищата на стената(ръба), то значи съвпадат и във вътрешността на стената(ръба). Така показахме, че стойностите във възлите взаимно еднозначно определят функция v от $V_h$. Това значи, че можем да използваме стойностите във възлите като степени на свобода и да въведем съответстващ базис $\{\phi_i\}_{i=1}^m$ на $V_h$: $\phi_i(N_j)=
+\begin{cases} 
+1 & \text{, } i=j, \\
+0 & \text{, } i \neq j \\
+\end{cases}
+$. Всяка базисна функция $\phi_j$ е непрекъсната, по части линейна и с носител само върху триъгълниците с връх $N_j$.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{V_h hat.png}
+\caption{\label{fig:frog}Примерна област и базисната функция $\phi_5$, която не е 0 само в 5-ия възел}
+\end{figure}
+Ще използваме базиса $\{\phi_i\}_{i=1}^m$, за да приближим дадена функция $f \in L_2(\Omega)$.
+
+\subsection{$L_2$ проекция}
+При дадена функция $f \in L_2(\Omega)$ $L_2$ проекцията  на $f$ върху  $V_h$ ще означим с $P_{hf} \in V_h$ и тя се дефинира чрез $\int_\Omega (f-P_{hf})vdx=0, \forall v \in V_h$, което е равносилно на 
+
+\begin{align*}
+\int_\Omega (f-P_{hf})\phi_idx=0, i=1,2\dots m
+\end{align*}
+, където $\phi_i$ са базисните функции на $V_h$. Но $P_{hf}=\sum_{j=1}^m\xi_j\phi_j$ и това ни дава
+\begin{align*}
+\int_\Omega P_{hf}\phi_idx=\int_\Omega\sum_{j=1}^m \xi_j\phi_j\phi_idx=\sum_{j=1}^m \xi_j\int_\Omega\phi_j\phi_idx, i=1,2\dots m
+\end{align*}
+Въвеждаме означенията 
+\begin{align*}
+M_{ij}=\int_\Omega\phi_j\phi_idx, i,j=1,2\dots m\\
+b_i=\int_\Omega f\phi_idx, i=1,2\dots m\\
+M=\{M_{ij}\}_{i,j=1}^m, \mathbf{b}=\{b_i\}_{i=1}^m, \boldsymbol{\xi}=\{\xi_i\}_{i=1}^m
+\end{align*}
+, чрез които системата ни уравнения добива следния вид
+\begin{align*}
+M\boldsymbol{\xi}=\mathbf{b}
+\end{align*}
+Намерим ли $\boldsymbol{\xi}$, ще намерим и коефициентите на $P_{hf}$.\\
+Прилагаме без доказателство някои свойства на $L_2$ проекцията:
+\begin{itemize}
+    \item $P_{hf}$ винаги съществува и е единствена
+    \item Изпълнено е $\lVert f-P_{hf} \rVert_{L_2(\Omega)} < \lVert f-v \rVert_{L_2(\Omega)}, \forall v \in V_h$
+    \item $\lVert f-P_{hf} \rVert_{L_2(\Omega)}^2 \leq C\sum_{K \in \mathcal{K}}h_K^4 \lVert f'' \rVert_{L_2(K)}$
+\end{itemize}
+
+\subsection{Пресмятане на M и b}
+
+Две от базисните функции имат ненулево произведение единствено когато участват като върхове в един и същ триъгълник, затова ще е по-ефикасно, ако пресметнем M чрез така наречените локални матрици на масата
+\[
+M_{K_s}=\int_{K_s}
+\begin{pmatrix}
+\phi_i\phi_i & \phi_i\phi_j & \phi_i\phi_k \\
+\phi_j\phi_i & \phi_j\phi_j & \phi_j\phi_k \\
+\phi_k\phi_i & \phi_k\phi_j & \phi_k\phi_k
+\end{pmatrix}
+\]
+Тук $\phi_i,\phi_j,\phi_k$ са съответно базисните функции върху елемента K. Елементите на $M_{K_s}$ прибавяме към елементите на M, които са на ред и стълб, които съответстват на номера на базисните функции- например $\phi_j\phi_i$ ще бъде прибавен към j-ти ред и i-ти стълб, а $\phi_k\phi_k$- към k-ти ред, k-ти стълб. Аналогично 
+\[
+\boldsymbol{b_{K_s}}=\int_{K_s}
+\begin{pmatrix}
+\phi_i f\\
+\phi_j f\\
+\phi_k f
+\end{pmatrix}
+\]
+и $\phi_i f$ ще бъде прибавено към i-тия ред на $\mathbf{b}$ (аналогично а j и k).
+\subsection{Вариационна формулировка}
+
+Ще приведем системата уравнения \ref{6}-\ref{9} към вариационна формулировка. За целта ще търсим функцията $\mathbf{u}$ в V=$(H^1(\Omega ))^3$- пространство от наредени тройки от функции, които имат първа слаба производна в $\Omega$ и за които $\lVert v \rVert_{H^1(\Omega)} = \lVert v \rVert_{L_2(\Omega)} + \lVert v' \rVert_{L_2(\Omega)}=\sqrt{\int_\Omega v^2 + v'^2 dx} < \infty $. За целта ще умножим скаларно двете страни на \ref{6} с произволна тестова функция $\mathbf{v} \in V$ и ще направим следните пресмятания
+\\
+\begin{tabular}{l}
+$\rho (\ddot{\mathbf{u}},\mathbf{v})-(\nabla . \sigma, \mathbf{v})=(\mathbf{f},\mathbf{v}),$ \\
+$(\nabla . \sigma, \mathbf{v}) =\displaystyle \int_\Omega (\nabla . \sigma). \mathbf{v} d\Omega= \sum_{j=1}^3\left( \int_\Omega \nabla . \boldsymbol{\sigma_j} v_j d\Omega\right) \overset{\text{Green}}{=} \sum_{j=1}^3( \int_{\partial \Omega} \boldsymbol{\sigma_j}. \mathbf{n}v_jds - \int_\Omega \boldsymbol{\sigma_j}. \nabla v_j d\Omega)$ \\
+$=  (\sigma . \mathbf{n, \mathbf{v}})_{\Gamma_L} - (\sigma : \nabla \mathbf{v})$
+\end{tabular}
+,\\
+където $\boldsymbol{\sigma_j}$ е j-тият ред на $\sigma$, $\mathbf{n}$ е нормалният вектор на $\partial \Omega$, (A:B)=$\sum_{i,j=1}^3A_{ij}B_{ij}$ е двойно скаларно произведение и сме взели предвид \ref{8}. 
+ДАЛИ ТЕНЗОР ИЛИ МАТРИЦА ДОЛУ?
+По-натам, обръщаме внимание на факта, че $\sigma$ е симетричен тенззор и ако го умножим(визираме двойно скаларно произведение) с антисиметричен тензор резултатът ще бъде сбор от произведенията на диагоналните елементи на двата тензора. Сега, разбиваме $\displaystyle \nabla \mathbf{v}=\frac{1}{2}(\nabla \mathbf{v} + (\nabla \mathbf{v})^T) + \frac{1}{2}(\nabla \mathbf{v} - (\nabla \mathbf{v})^T)$ на сбор от симетрична и антисиметрична матрица, като първото събираемо е всъщност $\epsilon(\mathbf{v})$, а диагоналните елементи на второто събираемо са нули. Това значи, че $(\sigma : \nabla \mathbf{v}) = (\sigma(\mathbf{u}), \epsilon(\mathbf{v}))  \overset{\text{\ref{7}}}{=}2\mu (\epsilon(\mathbf{u}):\epsilon(\mathbf{v}))+\lambda (\nabla . \mathbf{u} E: \epsilon(\mathbf{v}))$. 
+% Обръщаме внимание на факта, че 
+% \[
+% ( E: \epsilon(\mathbf{v}))=(
+% \begin{pmatrix}
+% 1 & 0 & 0 \\
+% 0 & 1 & 0 \\
+% 0 & 0 & 1
+% \end{pmatrix}
+% : 
+% \frac{1}{2}
+% (\begin{pmatrix}
+% \frac{\partial v_1}{\partial x_1} & \frac{\partial v_1}{\partial x_2} & \frac{\partial v_1}{\partial x_3} \\
+% \frac{\partial v_2}{\partial x_1} & \frac{\partial v_2}{\partial x_2} & \frac{\partial v_2}{\partial x_3} \\
+% \frac{\partial v_3}{\partial x_1} & \frac{\partial v_3}{\partial x_2} & \frac{\partial v_3}{\partial x_3}
+% \end{pmatrix}
+% +
+% \begin{pmatrix}
+% \frac{\partial v_1}{\partial x_1} & \frac{\partial v_2}{\partial x_1} & \frac{\partial v_3}{\partial x_1} \\
+% \frac{\partial v_1}{\partial x_2} & \frac{\partial v_2}{\partial x_2} & \frac{\partial v_3}{\partial x_2} \\
+% \frac{\partial v_1}{\partial x_3} & \frac{\partial v_2}{\partial x_3} & \frac{\partial v_3}{\partial x_3}
+% \end{pmatrix}
+% ))
+% =\frac{1}{2}(\frac{\partial v_1}{\partial x_1} + \frac{\partial v_2}{\partial x_2} + \frac{\partial v_3}{\partial x_3} + \frac{\partial v_1}{\partial x_1} + \frac{\partial v_2}{\partial x_2} + \frac{\partial v_3}{\partial x_3}) = \nabla . \mathbf{v}
+% \]
+% Виждаме, че в общия случай по същата логика се получава $(E:\mathbf{y}=Trace(\mathbf{y}))$.
+% Получаваме 
+% \\
+% $\rho (\ddot{\mathbf{u}},\mathbf{v})- (\sigma . \mathbf{n, \mathbf{v}})_{\Gamma_L} +(\sigma : \nabla \mathbf{v})=(\mathbf{f},\mathbf{v}).$ Може да игнорираме втория член, тъй като граници "отдолу" и "отстрани" на практика няма.
+
+За да стигнем до вариационната формулировка, ще се наложи да преправим малко полученото дотук. Въвеждаме
+\[
+\boldsymbol{\sigma} = 
+\begin{pmatrix}
+\sigma_{11}\\\sigma_{22}\\\sigma_{33}\\
+\sigma_{12}\\\sigma_{23}\\\sigma_{31}
+\end{pmatrix},
+\boldsymbol{\epsilon} = 
+\begin{pmatrix}
+\epsilon_{11}\\\epsilon_{22}\\\epsilon_{33}\\
+2\epsilon_{12}\\2\epsilon_{23}\\2\epsilon_{31}
+\end{pmatrix}
+\]
+Тогава \ref{7} може да се запише като $\boldsymbol{\sigma} = D\boldsymbol{\epsilon}$, където 
+\[
+D=
+\begin{pmatrix}
+2\mu+\lambda & \lambda & \lambda & 0 & 0 & 0\\
+\lambda & 2\mu+\lambda & \lambda & 0 & 0 & 0\\
+\lambda & \lambda & 2\mu+\lambda & 0 & 0 & 0\\
+0 & 0 & 0 & \mu & 0 & 0\\
+0 & 0 & 0 & 0 & \mu & 0\\
+0 & 0 & 0 & 0 & 0 & \mu
+\end{pmatrix}
+\]
+С тези означения имаме $(\sigma : \epsilon) = \boldsymbol{\epsilon}^T.\boldsymbol{\sigma}$. И така вариационната формулировка добива вида
+\begin{align}
+\text{Търсим } \mathbf{u} \in V: \notag\\
+a(\mathbf{u}, \mathbf{v})=F(\mathbf{v}), \forall \mathbf{v} \in V, \label{10}\\
+\mathbf{u_-}=\boldsymbol{u_+},\mathbf{x} \in \Gamma_L\notag
+\end{align}
+, където $\displaystyle a(\mathbf{u},\mathbf{v})=\int_\Omega\boldsymbol{\epsilon}^T(\mathbf{v}) D\boldsymbol{\epsilon}(\mathbf{u}) d\Omega + 
+\int_\Omega\rho\mathbf{v}^T\mathbf{\ddot{u}}d\Omega$ и 
+$\displaystyle F(\mathbf{v})=\int_\Omega \mathbf{f}.\mathbf{v}d\Omega$
+
+\subsection{Задача на Ritz-Galerkin}
+Превръщаме вариационната формулировка в задача на Ritz-Galerkin, която търси $L_2$ ?ДАЛИ проекцията на  $\mathbf{u} \in V$- функцията $\mathbf{u_h} \in V_h$. ДАЛИ НЕ Е ГАРАНТИРАНА ТАЗИ НЕПРЕКЪСНАТОСТ ОТ САМИЯ МКЕ
+\begin{align*}
+\text{Търсим } \mathbf{u_h} \in V_h \subset V:\\
+a(\mathbf{u_h}, \mathbf{v})=F(\mathbf{v}), \forall \mathbf{v} \in V_h,\\
+\mathbf{u_{h-}}=\boldsymbol{u_{h+}},\mathbf{x} \in \Gamma_L
+\end{align*}
+Тук 
+\[
+\mathbf{u_h}(\mathbf{x},t)=
+\begin{pmatrix}
+\displaystyle \sum_{j=1}^m\mathbf{q_{1j}}(t)\phi_j(\mathbf{x})\\
+\displaystyle \sum_{j=1}^m\mathbf{q_{2j}}(t)\phi_j(\mathbf{x})\\
+\displaystyle \sum_{j=1}^m\mathbf{q_{3j}}(t)\phi_j(\mathbf{x})
+\end{pmatrix}
+=
+\Phi.\mathbf{q} \text{, а пък }
+a(\mathbf{u_h}, \mathbf{v})=\sum_{K \in \mathcal{K}}a(\mathbf{u_{hK}}, \mathbf{v_K})
+\]
+\[
+\mathbf{u_{hK}}(\mathbf{x},t)=
+\begin{pmatrix}
+\displaystyle \sum_{j=K_1}^{K_d}\mathbf{q_{1j}}(t)\phi_j(\mathbf{x})\\
+\displaystyle \sum_{j=K_1}^{K_d}\mathbf{q_{2j}}(t)\phi_j(\mathbf{x})\\
+\displaystyle \sum_{j=K_1}^{K_d}\mathbf{q_{3j}}(t)\phi_j(\mathbf{x})
+\end{pmatrix}
+=
+\Phi_K.\mathbf{q_K},
+\]
+където d е броя на степените на свобода за един елемент, $K_1 \dots K_d$ са номерата на върховете на K, а
+% \[
+% \Phi=
+% \begin{pmatrix}
+% \phi_1 & 0 & 0 & \phi_2 & 0 & 0 & ... & \phi_m & 0 & 0 \\
+% 0 & \phi_1 & 0 & 0 & \phi_2 & 0 & ... & 0 & \phi_m & 0 \\
+% 0 & 0 & \phi_1 & 0 & 0 & \phi_2 & ... & 0 & 0 & \phi_m
+% \end{pmatrix}
+% ,\mathbf{q}=
+% \begin{pmatrix}
+% q_{11}\\q_{12}\\q_{13}\\q_{21}\\q_{22}\\q_{32}\\ \dots \\ q_{m1}\\q_{m2}\\q_{m2}
+% \end{pmatrix}
+% ,\]
+\[
+\Phi_K =
+\begin{pmatrix}
+\phi_{K_1} & 0 & 0 & \phi_{K_2} & 0 & 0 & ... & \phi_{K_d} & 0 & 0 \\
+0 & \phi_{K_1} & 0 & 0 & \phi_{K_2} & 0 & ... & 0 & \phi_{K_d} & 0 \\
+0 & 0 & \phi_{K_1} & 0 & 0 & \phi_{K_2} & ... & 0 & 0 & \phi_{K_d}
+\end{pmatrix}
+,\mathbf{q_K}=
+\begin{pmatrix}
+q_{{K_1}1}\\q_{{K_1}2}\\q_{{K_1}3}\\q_{{K_2}1}\\q_{{K_2}2}\\q_{{K_2}3}\\ \dots \\ q_{{K_d}1}\\q_{{K_d}2}\\q_{{K_d}2}
+\end{pmatrix}
+\]
+От друга страна, 
+\[
+\boldsymbol{\epsilon}(\mathbf{u})=
+\begin{pmatrix}
+\frac{\partial}{\partial x_1} & 0 & 0\\
+0 & \frac{\partial}{\partial x_2} & 0\\
+0 & 0 & \frac{\partial}{\partial x_3}\\
+\frac{\partial}{\partial x_2} & \frac{\partial}{\partial x_1} & 0\\
+0 & \frac{\partial}{\partial x_3} & \frac{\partial}{\partial x_2}\\
+\frac{\partial}{\partial x_3} & 0 & \frac{\partial}{\partial x_1}
+\end{pmatrix}
+. \mathbf{u_h}=B\mathbf{q}, \text{ }
+\boldsymbol{\epsilon}(\mathbf{v})=B\mathbf{w},
+\]
+където с $\mathbf{w}$ сме отбелязали коефициентите на $\mathbf{v}$. Това значи, че
+$
+\boldsymbol{\epsilon}(\mathbf{u})|_K=B\mathbf{q_K}, \boldsymbol{\epsilon}(\mathbf{v})|_K=B\mathbf{w_K}
+$.
+Заместваме в \ref{10} и получаваме 
+$\displaystyle \int_E\mathbf{w_K}^TB^T DB\mathbf{q_K} d\Omega +\int_E \rho \mathbf{w_K}^T\Phi^T \Phi\mathbf{\ddot{q_K}}d\Omega =\int_E \mathbf{w_K}^T\Phi.\mathbf{f}d\Omega, \forall \mathbf{w_K}  $ следователно $\displaystyle \int_E B^T DB\mathbf{q_K} d\Omega +\int_E \rho \Phi^T \Phi\mathbf{\ddot{q_K}}d\Omega =\int_E \Phi.\mathbf{f}d\Omega$ 
+или записано във векторно-матрична форма получаваме(при $\rho=const$)  $\displaystyle M_K^1\mathbf{q_k}+\rho M_K^0\frac{d^2 \mathbf{q_K}}{dt^2}=\mathbf{F_K}$. Блокът с индекси(първият елемент на даден масив е с индекс 1) $[d*(i-1)+1,d*i],[d*(j-1)+1,dj]$ на локалните матрици за елемент K прибавяме към съответната глобална матрица на индекси $[d*(K_i-1)+1,d*K_i],[d*(K_j-1)+1,d*K_j]$ . Аналогичо асемблираме глобалния вектор. Матриците са с размерност $dm \times dm$, а векторът $dm \times 1$. В крайна сметка получихме $\displaystyle M^1\mathbf{q}+\rho M^0\frac{d^2 \mathbf{q}}{dt^2}=\mathbf{F}$ или още
+\begin{align*}
+\frac{d \mathbf{q}}{dt}=\mathbf{p}\\
+\rho M^0\frac{d \mathbf{p}}{dt}=-M^1\mathbf{q}+\mathbf{F}
+\end{align*}
+Прилагаме подобрената формула на Ойлер(централна разлика):
+\begin{align*}
+\frac{\mathbf{q_{t+1}}-\mathbf{q_t}}{\tau}=\frac{\mathbf{p_{t+1}+\mathbf{p_t}}}{2}\\
+\rho M^0\frac{\mathbf{p_{t+1}-\mathbf{p_t}}}{\tau}=-M^1\frac{\mathbf{q_{t+1}+\mathbf{q_t}}}{2}+\frac{\mathbf{F_{t+1}+\mathbf{F_t}}}{2}
+\end{align*}
+Опростяваме и стигаме до
+\begin{align*}
+\mathbf{q_{t+1}}=\mathbf{q_t} + \frac{\tau}{2}(\mathbf{p_{t+1}+\mathbf{p_t}})\\
+\rho M^0\mathbf{p_{t+1}=\rho M^0 \mathbf{p_t}}-\frac{\tau}{2}M^1(\mathbf{q_{t+1}+q_t})+\frac{\tau}{2}(\mathbf{F_{t+1}+\mathbf{F_t}})
+\end{align*}
+ili
+\begin{align*}
+\mathbf{q_{t+1}} - \frac{\tau}{2}\mathbf{p_{t+1}}=\mathbf{q_t} + \frac{\tau}{2}\mathbf{p_t}\\
+\rho M^0\mathbf{p_{t+1}}+\frac{\tau}{2}M^1\mathbf{q_{t+1}}=\rho M^0 \mathbf{p_t}-\frac{\tau}{2}M^1\mathbf{q_t}+\frac{\tau}{2}(\mathbf{F_{t+1}+\mathbf{F_t}})
+\end{align*}
+Друг възможен запис е
+\[
+\begin{pmatrix}
+\rho M^0 & \frac{\tau}{2}M^1
+\\ - \frac{\tau}{2}E & E
+\end{pmatrix}
+\begin{pmatrix}
+\mathbf{p_{t+1}} \\ \mathbf{q_{t+1}}
+\end{pmatrix}
+=
+\begin{pmatrix}
+   \frac{\tau}{2}(\mathbf{F_{t+1}+\mathbf{F_t}})\\
+    \mathcal{O}
+\end{pmatrix}
++
+\begin{pmatrix}
+    \rho M^0 & -\frac{\tau}{2}M^1\\
+    \frac{\tau}{2} E & E
+\end{pmatrix}.
+\begin{pmatrix}
+    \mathbf{p_t}\\
+    \mathbf{q_t}
+\end{pmatrix}
+\]
+, където $E$ е единичната матрица, $\mathbb{O}$ е нулевата матрица, а $\mathcal{O}$ е нулевият вектор. За по-кратко ще използваме записа $\displaystyle LHS \boldsymbol{\xi_{t+1}}=\mathbf{b}+RHS \mathbf{\xi_t}.$ В крайна сметка сведохме системата диференциални уравнения до решаване на система линейни уравнения на всяка стъпка от времето. Матрицата $LHS$ няма специална структура(освен че е разредена), така че за решаването на системата линейни уравнения можем да ползваме методи, базирани на метода на Крилов(Generalized Minimum Residual, reference: Miscellaneous Titles in Applied Mathemtics, page 20). Всъщност, матрицата $LHS$ има много високо число на обусловеност: от порядъка на $10^22$ и $10^28$, което по-скоро ни задължава да използваме точен метод за решаването на системата? Като бъдеща задача можем да опитаме да преобразуваме $LHS$ така че да стане симетрична и положително определена и да ползваме метод на спрегнатия градиент за решаването й. Ще трябва да се обърне внимание и на числото на обусловеност- дали то ще се повиши драстично от тази промяна?
+
+\subsection{Прекъснат метод на Гальоркин}
+ Integrator for the linear elasticity form:
+ $$
+    - \left< \{ \tau(u) \}, [v] \right> + \alpha \left< \{ \tau(v) \}, [u]
+        \right> + \kappa \left< h^{-1} \{ \lambda + 2 \mu \} [u], [v] \right>
+    $$
+
+    where $ \left<u, v\right> = \int_{F} u \cdot v $, and $ F $ is a
+    face which is either a boundary face $ F_b $ of an element $ K $ or
+    an interior face $ F_i $ separating elements $ K_1 $ and $ K_2 $.
+
+    In the bilinear form above $ \tau(u) $ is traction, and it's also
+    $ \tau(u) = \sigma(u) \cdot \vec{n} $, where $ \sigma(u) $ is
+    stress, and $ \vec{n} $ is the unit normal vector w.r.t. to $ F $.
+
+    In other words, we have
+    $$
+    - \left< \{ \sigma(u) \cdot \vec{n} \}, [v] \right> + \alpha \left< \{
+        \sigma(v) \cdot \vec{n} \}, [u] \right> + \kappa \left< h^{-1} \{
+        \lambda + 2 \mu \} [u], [v] \right>
+    $$
+
+    
+    
+Вторият метод, който ще използваме за числено решаване на диференциалните уравнения, е прекъснатият метод на Гальоркин. Той също се основава на идеята на крайни елементи, като съществената разлика е, че приближеното решение $u_h \in V_h = \{v: v|_K \in P_1(K), \forall K \in \mathcal{K} \}$. Това означава, че $u_h$ може да е прекъсната по границите между различните елементи. Базисните функции $\{\phi_i\}_{i=1}^m$ са прекъснти по части (линейни?) полиноми върху всеки елемент К. С $\mathcal{E}=\{E_i\}_{i=1}^M$ бележим съвкупността от вътрешните ръбове на триангулацията $\mathcal{K}$ и за всяко $E_i$ разглеждаме единичен нормален вектор $\mathbf{n}$. $K^+$ е елементът, за който $\mathbf{n}$ =$\mathbf{n^+}$ е външна нормала, а $K^-$- елементът, за който $-\mathbf{n}$ = $\mathbf{n^-}$ е външна нормала. По ръбовете от $\partial\Omega$ $\mathbf{n}$ е външен за $\Omega$. Стойностите на дадена функция v върху $K^+$ 
+и $K^-$ означаваме съответно с $v^+$ и $v^-$. Въвеждаме следните стойности върху всяко $E \in \mathcal{E}$:
+
+[v] = $v^+ - v^-$, <v> = $\displaystyle \frac{v^++v^-}{2}$
+
+Основната сила на метода се наблюдава при доминираща адвекция?, затова ще приведем нашето уравнение във формата скорост-напрежение(velocity-stress):
+\begin{OPRAVI V KODA!!!}
+\rho \dot{\mathbf{v}}= \nabla . \sigma+ \mathbf{f}(\mathbf{x}), \mathbf{x} \in \Omega \label{6}\\
+\dot\sigma = \mu  (\nabla \mathbf{v}+(\nabla \mathbf{v})^T)+\lambda(\nabla . \mathbf{v})E, \mathbf{x} \in \Omega \label{7}\\
+\sigma . \mathbf{n} = \mathbf{0}, \mathbf{x} \in \Gamma_F \label{8}\\
+\mathbf{u}_-=\mathbf{u}_+, \mathbf{x} \in \Gamma_L \label{9}
+\end{align}
+Тук $\sigma$ запазва смисъла си, а $\mathbf{v}$ придобива смисъл на скоростта на отместването.OPRAVI V KODA!!!
+
+ Ако запишем всички променливи във вектора $\mathbf{W}=(v_x,v_y,\sigma_x,\sigma_y,\sigma_{xy})^T$. Тогава, следвайки ИМЕ НА СТАТИЯ, можем да сведем системата от 2 дифернциални уравнения до 1 диференциално уравнение: $\displaystyle \frac{\partial \mathbf{W}}{\partial t}=\sum_{\alpha \in \{x,y\}}A_{n_\alpha}\frac{\partial \mathbf{W}}{\partial \alpha}$. Тук
+
+\[
+A_{n_x}=
+\begin{pmatrix}
+ 0 & 0 & \frac{1}{\rho} & 0 & 0\\
+ 0 & 0 & 0 & 0 & \frac{1}{\rho}\\
+(2\mu+\lambda) & 0 & 0 & 0 & 0\\
+\lambda & 0 & 0 & 0 & 0\\
+0 & \mu & 0 & 0 & 0
+\end{pmatrix},
+A_{n_y}=
+\begin{pmatrix}
+ 0 & 0 & 0 & 0 & \frac{1}{\rho}\\
+ 0 & 0 & 0 & \frac{1}{\rho} & 0\\
+0 & \lambda & 0 & 0 & 0\\
+0 & (2\mu+\lambda) & 0 & 0 & 0\\
+\mu & 0 & 0 & 0 & 0
+\end{pmatrix}
+\]
+За произволен единичен вектор $\mathbf{n}=(n_x,n_y)^T$ въвеждаме и 
+\[
+A_n=n_xA_{n_x}+n_yA_{n_y}=
+\begin{pmatrix}
+ 0 & 0 & \frac{n_x}{\rho} & 0 & \frac{n_y}{\rho}\\
+ 0 & 0 & 0 & \frac{n_y}{\rho} & \frac{n_x}{\rho}\\
+(2\mu+\lambda)n_x & \lambda n_y & 0 & 0 & 0\\
+\lambda n_x & (2\mu+\lambda)n_y & 0 & 0 & 0\\
+\mu n_y & \mu n_x & 0 & 0 & 0
+\end{pmatrix}
+\]
+
+За да приложим прекъснатия метод на Гальоркин за нашето уравнение отново умножаваме с тестова функция и интегрираме, но този път само върху конкретен елемент $\tau$.
+
+Получава се
+\begin{align}
+\displaystyle \int_\tau \frac{\partial \mathbf{W}}{\partial t} \phi_l d\Omega=\int_\tau \sum_{\alpha \in \{x,y\}}A_{n_\alpha}\frac{\partial\mathbf{W}}{\partial \alpha}\phi_l d\Omega=\int_\tau\sum_{\alpha\in\{x,y\}}A_{n_\alpha}\frac{\partial}{\partial\alpha}(\mathbf{W}\phi_l)d\Omega-\int_\tau A_{n_\alpha}\mathbf{W}\frac{\partial\phi_l}{\partial\alpha}d\Omega
+\\=
+\int_{\partial\tau}A_\mathbf{n}\mathbf{W}\phi_lds-\int_\tau A_{n_\alpha}\mathbf{W}\frac{\partial\phi_l}{\partial\alpha}ds
+\end{align}
+. Всяка компонента на $\mathbf{W}$ можем да представим като линейна комбинация на базисните функции $\{\phi_i\}_{i=1}^n$. Даваме нагледен пример с $\displaystyle v_x\approx\sum_{i=1}^nv_x(x_i,y_i)\phi_i=\sum_{i=1}^n(v_x)_i\phi_i$. Въвеждаме означението $\tilde{\mathbf{v}}_\mathbf{x}=((v_x)_1,(v_x)_2,\dots(v_x)_n)^T$. Тоест, $v_x \approx \mathbf{\phi}.\tilde{\mathbf{v}}_\mathbf{x}$. Въвеждаме аналогични вектори от коефициенти за останалите променливи, както и
+
+\[
+\tilde{\mathbf{W}}=
+\begin{pmatrix}
+ \tilde{\mathbf{v}}_\mathbf{x}\\
+ \tilde{\mathbf{v}}_\mathbf{y}\\
+\tilde{\mathbf{\sigma}}_\mathbf{x}\\
+\tilde{\mathbf{\sigma}}_\mathbf{y}\\
+\tilde{\mathbf{\sigma}}_\mathbf{xy}
+\end{pmatrix},
+\tilde{\mathbf{W}}_i=
+\begin{pmatrix}
+ (\tilde{\mathbf{v}}_\mathbf{x})_i\\
+ (\tilde{\mathbf{v}}_\mathbf{y})_i\\
+(\tilde{\mathbf{\sigma}}_\mathbf{x})_i\\
+(\tilde{\mathbf{\sigma}}_\mathbf{y})_i\\
+(\tilde{\mathbf{\sigma}}_\mathbf{xy})_i
+\end{pmatrix}
+\]
+Тогава можем да изразим уравнението като 
+$\displaystyle \int_\tau \sum_{i=1}^n \frac{d\tilde{\mathbf{W}}_\mathbf{i}}{dt}\phi_i \phi_l=\int_\tau \sum_{\alpha \in \{x,y\}}A_\alpha\tilde{\mathbf{W}}_\mathbf{i}$
+
+\chapter{Числени експерименти и резултати}
+\section{Числени симулации, наподобяващи ледник...}
+За числените експерименти използваме като област правоъгълник с размери 500m по x и 900m по y. За долните 600 метра ще използваме параметри на скала, а в горните 300 метра параметри на лед, като плътността на леда се мени линейно между 900 и 300 $kg/m^2$. Правим няколко симулации на единични събития: на повърхността на леда, в средата на леда, на границата лед-скала и близо до долната граница на изчислителния регион скала. Симулациите са без пукнатини и с една пукнатина на повърхността, която може да е пълна с вода или въздух. Върху същия регион правим и симулации на две събития, като този път пукнатините са 2- отново пълни с вода или празни. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=1.2\linewidth]{domain_with_sources.png}
+\caption{Областта, която ползваме за числени симулации. За единични събития са симулирани всички възможни комбинации вариантите без пукнатина и с 1 пукнатина(винаги лявата), която може да е празна или пълна с вода и кой да е единичен източник(червените точки). За региона с две пукнатини са направени една симулация с едно събитие(източникът е {300,900}), за която и двете пукнатини са празни, и симулции с две едновременни събития, които са описани в легендата.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.4\linewidth]{2event_2watercavity_300_900,780_source.png}
+\caption{Сеизмограма за 2 събития с 2 пукнатини, пълни с вода. Едното събитие е с координати (300,780), а другото- (300,900).}
+\end{figure}
+
+Самите източници моделираме с така наречената вълна на Ricker, дефинирана в \cite{wang2015frequencies}, която е втората производна на плътността на Гаусовото разпределение(умножена по константа). Тя е стандартна за моделирането на сеизмични активности- примерна статия, в която се използва, е \cite{Komatitsch2002}. Версията, която ние ползваме, има формата 
+$r(t)=(1-2a^2(t))e^{a^2(t)}$, където $a(t)=\pi*f_0*(t-\frac{1}{f_0})$. Тук $f_0$ е доминиращата честота, разделена на 2.Именно затова като източник използваме функцията в момент $t-\frac{1}{f_0}$, с което началото на доминиращата честота се премества в 0.\\
+Действително, прилагайки трансформация на Фурие върху функцията на Рикер получаваме $R(s)=\frac{s^2\sqrt{\pi}}{2f^3}e^{-\frac{s^2}{4f^2}}$. Следователно $\frac{dR}{ds}=\sqrt{\frac{\pi}{2f^3}}(2s-\frac{2s^3}{4f^2})e^{-\frac{s^2}{4f^2}}=0$ има корени в -2f,0 и 2f, като 0 е локален минимум, а -2f и 2f са локални максимуми, тоест действително 2f е доминиращата честота.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{ricker.png}
+\caption{Рикер функция. Един източник е ненулев единствено в точката, най-близка до зададените координати, като стойността му във време t е $r(t)$.}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{fourier_transform_ricker.png}
+\caption{Трансформацията на Фурие за вълна на Рикер с $f_0=8$. Локалните максимуми са в -16 и 16}
+\end{figure}
+
+\section{Сравнение на модела с аналитично решение}
+В своята статия J. Walters \cite{walters_seismic_analytic}
+ разглежда следните начални условия:
+
+\begin{align}
+u_X(x,y) = \frac{d}{dx}(\frac{1}{(1+x^2)(1+y^2)})=\frac{-2x}{(1+x^2)^2(1+y^2)}\\
+u_X(x,y) = \frac{d}{dy}(\frac{1}{(1+x^2)(1+y^2)})=\frac{-2y}{(1+x^2)(1+y^2)^2},
+\end{align}
+за които намира аналитично решение:
+\begin{align*}
+u^X(x,y,t)=\frac{1}{4i}\sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}\int_0^{\pi/2}\frac{mcos\phi}{(cos\phi+sin\phi+i(mx cos\phi+py sin\phi+n\beta t))^3}d\phi,\\
+u^Y(x,y,t)=\frac{1}{4i}\sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}\int_0^{\pi/2}\frac{mcos\phi}{(cos\phi+sin\phi+i(my cos\phi-px sin\phi+n\beta t))^3}d\phi.
+\end{align*}
+След това проверява тези аналитични решения спрямо числените си в област, която представлява квадрат със страна  10000m, в която всички гранични условия са "изкуствени". Той моделира това с PML, ние го моделираме както и в предишните симулации- чрез  зануляване на отместването по самата граница. Perfectly matched layer(PML) е изкуствен поглъщаащ слой, използван при моделирането на вълнови уравнения, за да симулира отворен регион(потиска отразените вълни). В статията си \cite{walters_seismic_analytic} J. Walters показва, че PML се справя значително по-добре от други методи за справяне с изкуствената граница.
+TO DO: вкарай картини за резултатите- аналитични, числени и разлики
+реши каква грешка тр да се ползва.
+
+\section{Приложение}
+
+\subsection{Затворена формула}
+\[u^X(x,y,t) = \sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}(\frac{S_1+S_2+S_3+S_4+S_5}{8D_1^4D_2^2D_3}+\frac{S_6S_7}{4D_1^5}),\]
+където помощните функции са
+\begin{equation}
+\begin{aligned}
+S_1&=m[3in\beta t(2-\beta^2t^2)+2\beta^4t^4-3\beta^2t^2+r^4-8r^2+4],\\
+S_2&=n\beta^3t^3(4x-mpy),\\
+S_3&=3\beta^2t^2(mx^2-my^2+pxy+impy-3ix),\\
+S_4&=n\beta t[2x^3-xy^2-13x+mpy(4x^2+y^2-5)-2i(3pxy+5mx^2+my^2)],\\
+S_5&=-8pxy-4i(r^2-2)(x+mpy),\\
+S_6&=3n\beta t(x-mi),\\
+S_7&=ArcTanh(\frac{i-py}{D_1})+ArcTanh(\frac{n\beta t-mx+py}{D_1}),\\
+D_1&=\sqrt{r^2-\beta^2 t^2-2-2i(mx+py)},\\
+D_2&=n\beta t+mx-i,\\
+D_3&=n\beta t+py-i,\\
+r&=\sqrt{x^2+y^2}
+\end{aligned}
+\end{equation}
+Формулата за $u^Y(x,y,t)$ е идентична, но (x,y) са заменени с (y,-x):\\
+\[u^Y(x,y,t)=\sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}(\frac{T_1+T_2+T_3+T_4+T_5}{8E_1^4E_2^2E_3}+\frac{T_6T_7}{4E_1^5})\], където
+\begin{equation}
+\begin{aligned}
+T_1&=m[3in\beta t(2-\beta^2t^2)+2\beta^4t^4-3\beta^2t^2+r^4-8r^2+4],\\
+T_2&=n\beta^3t^3(4y+mpx),\\
+T_3&=3\beta^2t^2(my^2-mx^2-pxy-impx-3iy),\\
+T_4&=n\beta t[2y^3-yx^2-13y-mpx(4y^2+x^2-5)-2i(5my^2+mx^2-3pxy)],\\
+T_5&=8pxy-4i(r^2-2)(y-mpx),\\
+T_6&=3n\beta t(y-mi),\\
+T_7&=ArcTanh(\frac{i+px}{E_1})+ArcTanh(\frac{n\beta t-my-px}{E_1}),\\
+E_1&=\sqrt{r^2-\beta^2t^2-2-2i(my-px)},\\
+E_2&=n\beta t+my-i,\\
+E_3&=n\beta t-px-i,\\
+r&=\sqrt{x^2+y^2}.
+\end{aligned}
+\end{equation}
+
+\bibliographystyle{plain} % or another style like ieee, apa, etc.
+\bibliography{references}
+\bibliographystyle{alpha}
+\end{document}

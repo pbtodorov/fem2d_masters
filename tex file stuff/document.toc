@@ -1,0 +1,45 @@
+\babel@toc {bulgarian}{}\relax 
+\contentsline {chapter}{\numberline {1}Въведение}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Уравнения на модела и теоретични основи}{2}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Теория на сеизмичните вълни}{2}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Деформация}{2}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Напрежение}{4}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Модул на Юнг}{7}{subsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.1.4}Зависимост между деформация и напрежение в изотропна среда}{7}{subsection.2.1.4}%
+\contentsline {subsection}{\numberline {2.1.5}Гранични условия}{9}{subsection.2.1.5}%
+\contentsline {section}{\numberline {2.2}Метод на крайните елементи}{10}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Векторно-матрична форма и размерности}{10}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Общ вид на метода на крайните елементи}{11}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Пространството на по части линейни полиноми}{12}{subsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.2.4}$L_2$ проекция}{12}{subsection.2.2.4}%
+\contentsline {subsection}{\numberline {2.2.5}Пресмятане на $M$ и $\mathbf {b}$}{13}{subsection.2.2.5}%
+\contentsline {subsection}{\numberline {2.2.6}Вариационна формулировка}{14}{subsection.2.2.6}%
+\contentsline {subsection}{\numberline {2.2.7}Задача на Ritz-Galerkin}{15}{subsection.2.2.7}%
+\contentsline {chapter}{\numberline {3}Числени експерименти и резултати}{18}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Имплементационни детайли}{18}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Библиотеки и структури от данни}{18}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Решаване на линейната система}{19}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}Асемблиране на глобалните матрици}{20}{subsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.1.4}Помощни алгоритми}{22}{subsection.3.1.4}%
+\contentsline {section}{\numberline {3.2}Режими и настройки на \texttt {FEM2D}}{24}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Използвани параметри и входни данни}{25}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Допълнителни процедури и генериране на мрежата}{26}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Проведени експерименти}{27}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Числени симулации, наподобяващи ледник върху скала}{27}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Избор на функцията източник}{27}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.5.3}Размер на мрежата и големина на стъпката по времето}{32}{subsection.3.5.3}%
+\contentsline {subsection}{\numberline {3.5.4}Извършени симулации }{34}{subsection.3.5.4}%
+\contentsline {subsection}{\numberline {3.5.5}Сравнение на метода с аналитични решения}{38}{subsection.3.5.5}%
+\contentsline {subsection}{\numberline {3.5.6}Практическа оценка на грешката}{42}{subsection.3.5.6}%
+\contentsline {section}{\numberline {3.6}Бъдеща разработка}{44}{section.3.6}%
+\contentsline {section}{\numberline {3.7}Заключение}{45}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Приложение}{45}{section.3.8}%
+\contentsline {subsection}{\numberline {3.8.1}Примерни конфигурационни файлове}{45}{subsection.3.8.1}%
+\contentsline {subsubsection}{Режим \texttt {Halfspace}}{45}{section*.46}%
+\contentsline {subsubsection}{Режим \texttt {Layered}}{45}{section*.47}%
+\contentsline {subsubsection}{Режим \texttt {Analytical}}{46}{section*.48}%
+\contentsline {subsection}{\numberline {3.8.2}Примерни матрици в \texttt {MFEM} и \texttt {Eigen} формат и запис на разредените матрици}{46}{subsection.3.8.2}%
+\contentsline {subsubsection}{\texttt {Eigen} формат}{46}{section*.49}%
+\contentsline {subsubsection}{\texttt {MFEM} формат}{47}{section*.50}%
+\contentsline {subsection}{\numberline {3.8.3}Затворена формула}{48}{subsection.3.8.3}%
+\contentsline {subsection}{\numberline {3.8.4}Код за раздробяване на мрежа}{48}{subsection.3.8.4}%

@@ -1,0 +1,2038 @@
+\documentclass{report}
+
+% Language setting
+% Replace 'english' with e.g. 'spanish' to change the document language
+\usepackage[bulgarian]{babel}
+
+% Set page size and margins
+% Replace 'letterpaper' with 'a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{graphicx}
+\usepackage{placeins} % in your preamble
+\usepackage{indentfirst}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc} % usually default
+\usepackage{csquotes}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{subcaption} % or subfig package
+\setlength{\parindent}{2em}
+\setlength\parskip{0.5em} %Space between paragraphs
+\usepackage{pdflscape}
+%\renewcommand{\baselinestretch}{1.5}
+
+\graphicspath{{png}}
+
+\usepackage[colorlinks=true, allcolors=black]{hyperref}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+	basicstyle=\ttfamily\small,    % font for the code
+	keywordstyle=\color{blue},     % keywords in blue
+	commentstyle=\color{gray},     % comments in gray
+	stringstyle=\color{orange},    % strings in orange
+	showstringspaces=false,
+	breaklines=true,               % automatic line breaking
+	frame=single,                  % border around the code
+	numbers=left,                  % line numbers
+	numberstyle=\tiny\color{gray},
+	tabsize=4,
+	captionpos=b,
+	escapeinside={(*@}{@*)},       % for inline LaTeX in code
+	language=Python                % or C++, Mathematica, etc.
+}
+
+
+\begin{document}
+\begin{titlepage}
+	\vspace{-15mm}
+	\begin{center}
+		{\includegraphics[width=4cm]{SU.png}\\
+			\Large{{Софийски Университет ``Св. Климент Охридски``}}\\
+			\vspace{0.3cm}
+			\Large{{Факултет по математика и информатика}}\\
+			\vspace{0.3cm}
+			\Large{МП ``Изчислителна математика и математическо моделиране``}\\
+			\vspace{1cm}
+			\Large{\textbf{Числени симулации на сеизмични вълни в ледници}}\\
+			\vspace{1cm}
+			\Large{Петър Богданов Тодоров}\\
+			\vspace{0.3cm}
+			Факултетен номер: 7MI3300039}\\
+		\vspace{1cm}
+		\Large{Научен ръководител:}\\
+		\Large{гл. ас. д-р Гергана Георгиева} \\ 
+		\vspace{1cm}
+		\Large{Ноември 2025 г.\\
+			София, България}
+	\end{center}
+	
+\end{titlepage}
+	\tableofcontents
+	\begin{abstract}
+		Целта на настоящата дипломна работа е да се симулират числено сеизмични вълнови форми в среда, която наподобява реален ледник от района на Българската антарктическа база (БАБ) на о-в Ливингстън, Антарктика. Симулацията е направена с разработена от дипломанта програма, която има няколко режима на работа. Може да ѝ бъдат подадени конкретна среда или слой от две среди, един или повече източници, пукнатини по повърхността на ледника, които съдържат вода или въздух. По този начин чрез извършените симулации за конкретно местоположение на точков източник и различна среда бихме могли да изследваме вида на вълновите форми от така наречените ледотресения или сеизмични събития в ледника. Може също да се изследва и къде точно се наблюдават - в неговия обем или под него. Програмата е верифицирана чрез подаване на конкретни параметри на реалната среда и начални условия, за които има аналитично решение.
+	\end{abstract}
+	
+	\chapter{Въведение}
+	Българската антарктическа база (БАБ) ''Св. Климент Охридски'' се намира на о-в Ливингстън, който е вторият по големина остров от Южношетландските о-ви, Антарктида. През астралното лято около 70 \% от острова са покрити с лед. 
+	
+	Сеизмични изследвания в района на БАБ се извършват от 2015 г., когато е инсталирана сеизмичната станция LIVV. До 2020г. тя работи само през астралното лято, а след това е постоянна и прави запис целогодишно. Анализът на сеизмичните данни показва сравнително висока сеизмична активност в района на Южношетландските о-ви. Освен земетресенията в сеизмичната станция се регистрират и огромен брой ледотресения - сеизмични събития, които се дължат на движението и различни други процеси в ледниците на острова. Най-близкият ледник до сеизмичната станция е ледник Балкан, който се изследва от българските учени от поне две десетилетия.  
+	
+	Основната цел на настоящата дипломна работа е симулацията на вълнови форми от ледотресения. Ледник Балкан е използван за изготвяне на модела на средата, в която те се симулират. Очакваме разработеният метод при определената в подглава \ref{source} функция източник да пресъздаде регистрирани от сеизмичната станция реални вълнови форми.
+	
+	Получените резултати в бъдеще ще бъдат сравнени с реални данни от сеизмичната станция LIVV (Фиг. \ref{fig:baza}). Подобно сравнение е важно за установяване на огнищата на ледотресенията и начина, по който се разпространяват вълните от тях до сеизмичната станция.
+	
+	\begin{figure}[!h]\centering
+		\begin{subfigure}[b]{0.9\textwidth}
+		\includegraphics[width=0.49\textwidth]{baza.jpg}
+		\hfill
+	    \includegraphics[width=0.49\textwidth]{lednik.JPG}
+	    \end{subfigure}
+	    \caption{Ляво - Българска антарктическа база. Дясно - ледник Балкан.}
+		\label{fig:baza}	
+	\end{figure}
+	
+	
+	\chapter{Уравнения на модела и теоретични основи}
+	\section{Теория на сеизмичните вълни}
+	Земетресенията отделят огромно количество енергия в огнището. Тази енергия започва да се разпространява през Земята под формата на сеизмични вълни. Минавайки през различните слоеве, които изграждат вътрешността на нашата планета, сеизмичните вълни променят различни свои характеристики. Така те ''записват'' информацията за физичните свойства на материята, през която минават. Анализирайки записите на земетресенията, можем да получим информацията, която сеизмичните вълни носят, и да разберем строежа на Земята.
+	
+	В тази глава ще разгледаме теоретичните основи на разпространението на сеизмичните вълни. За тази цел трябва първо да дефинираме тензор на деформациите и тензор на напреженията.
+	
+	\subsection{Деформация}
+	Разглежда се еластична среда в координатна система $O_{xyz}$ (\cite{geofizika_chast1}\cite{slawinski2015wavesrays}\cite{lay1995modern}\cite{aki_richards2002_quantitative}). Нека точките $M(x,y,z)$ и $N(x+\xi, y+\eta,z+\zeta)$ са много близо една до друга. При деформация на средата те се преместват съответно в $M'(x',y',z')$ и $N'(x'+\xi', y'+\eta',z'+\zeta')$. Векторът на деформацията за $M$ $\boldsymbol{MM'}$ може да се означи с $\boldsymbol{U_M}=(u_M(x,y,z),v_M(x,y,z),w_M(x,y,z))^T$. Всичките му компоненти са непрекъснати функции на $x, y, z$, защото иначе би се получила деформация с разрив. Аналогично $\boldsymbol{U_N}=(u_N(x+\xi,y+\eta,z+\zeta),v_N(x+\xi,y+\eta,z+\zeta),w_N(x+\xi,y+\eta,z+\zeta))^T$. С вектора $\boldsymbol{\Delta U}$ означаваме $\boldsymbol{U_N}-\boldsymbol{U_M}\overset{\text{Taylor}}{=}\boldsymbol{U_M}+\boldsymbol{\nabla U_M}.(\xi,\eta,\zeta)^T-\boldsymbol{U_M}=(\delta u, \delta v, \delta w)^T$, откъдето се стига до:
+	\begin{align*}
+		&\Delta u = \frac{\partial u}{\partial x} \xi + \frac{\partial u}{\partial y} \eta + \frac{\partial u}{\partial z} \zeta,\\
+		&\Delta v = \frac{\partial v}{\partial x} \xi + \frac{\partial v}{\partial y} \eta + \frac{\partial v}{\partial z} \zeta,\\
+		&\Delta w = \frac{\partial w}{\partial x} \xi + \frac{\partial w}{\partial y} \eta + \frac{\partial w}{\partial z} \zeta.\\
+	\end{align*}
+	
+	Към първото уравнение се добавя и изважда $\displaystyle \frac{1}{2}\frac{\partial v}{\partial x}\eta + \frac{1}{2}\frac{\partial w}{\partial x}\zeta$ и се получава 
+	\begin{align*}
+		\Delta u = \frac{\partial u}{\partial x} \xi + \frac{1}{2}(\frac{\partial v}{\partial x}+\frac{\partial u}{\partial y} )\eta + \frac{1}{2}(\frac{\partial w}{\partial x}+\frac{\partial u}{\partial z} )\zeta-\frac{1}{2}(\frac{\partial v}{\partial x}-\frac{\partial u}{\partial y} )\eta + \frac{1}{2}(\frac{\partial u}{\partial z}-\frac{\partial w}{\partial x} )\zeta.
+	\end{align*}
+	Аналогично и
+	\begin{align*}
+		\Delta v = \frac{\partial v}{\partial y} \eta + \frac{1}{2}(\frac{\partial v}{\partial x}+\frac{\partial u}{\partial y} )\xi + \frac{1}{2}(\frac{\partial w}{\partial y}+\frac{\partial v}{\partial z} )\zeta-\frac{1}{2}(\frac{\partial w}{\partial y}-\frac{\partial v}{\partial z} )\zeta + \frac{1}{2}(\frac{\partial v}{\partial x}-\frac{\partial u}{\partial y} )\xi,
+		\\
+		\Delta w = \frac{\partial w}{\partial z} \zeta + \frac{1}{2}(\frac{\partial v}{\partial z}+\frac{\partial w}{\partial y} )\eta + \frac{1}{2}(\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x} )\xi+\frac{1}{2}(\frac{\partial w}{\partial y}-\frac{\partial v}{\partial z} )\eta - \frac{1}{2}(\frac{\partial u}{\partial z}-\frac{\partial w}{\partial x} ) \xi.
+	\end{align*}
+	
+	Въвеждат се означенията
+	\begin{align*}
+		\epsilon_{xx}=\frac{\partial u}{\partial x},\\
+		\epsilon_{yy}=\frac{\partial v}{\partial y},\\
+		\epsilon_{zz}=\frac{\partial w}{\partial z},\\
+		\epsilon_{xy}=\frac{\partial u}{\partial y}+\frac{\partial v}{\partial x},\\
+		\epsilon_{xz}=\epsilon_{yx}=\frac{\partial u}{\partial z}+\frac{\partial w}{\partial x},\\
+		\epsilon_{yz}=\epsilon_{zy}=\frac{\partial v}{\partial z}+\frac{\partial w}{\partial y},\\
+		2\omega_{x,y}=-2\omega_{y,x}=\frac{\partial v}{\partial x}-\frac{\partial u}{\partial y},\\
+		2\omega_{y,z}=-2\omega_{z,y}=\frac{\partial w}{\partial y}-\frac{\partial v}{\partial z},\\
+		2\omega_{z,x}=-2\omega_{x,z}=\frac{\partial u}{\partial z}-\frac{\partial w}{\partial x}.\\
+	\end{align*}
+	
+	Горните уравнения добиват вида
+	\begin{equation}
+		\begin{aligned}
+			&\Delta u =\epsilon_{xx}\xi+\frac{1}{2}\epsilon_{xy}\eta+\frac{1}{2}\epsilon_{xz}\zeta+\omega_{zx}\zeta-\omega_{xy}\eta,\\
+			&\Delta v =\epsilon_{yy}\eta+\frac{1}{2}\epsilon_{xy}\xi+\frac{1}{2}\epsilon_{yz}\zeta+\omega_{xy}\xi-\omega_{yz}\zeta,\\
+			&\Delta w =\epsilon_{zz}\zeta+\frac{1}{2}\epsilon_{xz}\xi+\frac{1}{2}\epsilon_{yz}\eta+\omega_{yz}\eta-\omega_{zx}\xi.
+		\end{aligned}
+		\label{eq:displacement}
+	\end{equation}
+	За да се изясни физичният смисъл на коефициентите пред $\xi, \eta, \zeta$, ще бъде разгледана постановката от фигура \ref{fig:deformation}: разглежда се координатна система $M\xi\eta\zeta$, като $M\xi, M\eta, M\zeta$ са успоредни на съответно $Ox, Oy, Oz$. Точката $N$ се намира върху лъча $M\xi$. След деформация на отсечката $MN$ според формулите \ref{eq:displacement} се получава за $\boldsymbol{\Delta U_N}=\boldsymbol{U_N}-\boldsymbol{ U_M}$:
+	\begin{equation}
+		\begin{aligned}
+			&\Delta u_N =\epsilon_{xx}\xi, &&\\
+			&\Delta v_N =\frac{1}{2}\epsilon_{xy}\xi+\omega_{xy}\xi, &&\\
+			&\Delta w_N =\frac{1}{2}\epsilon_{xz}\xi-\omega_{zx}\xi. &&
+		\end{aligned}
+		\label{eq:displacement_u}
+	\end{equation}
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.9\textwidth]{displacement_after_transformation.png}
+		\caption{\label{fig:deformation} Точките $M,N,P$ както и образите им $M', N', P'$. Точките $M_1, N_1, P_1$ са проекциите на съответните образи върху равнината $M\xi\eta$. Точките $M_0$ и $N_0$ са проекцията съответно на $M_1$ и $N_1$ върху правата $M\xi$, а $Q$ е такава, че $M_1Q=M_0N_0$ и $M_1Q||M_0N_0$, тоест $N_1,Q,N_0$ лежат на една права, която е перпендикулярна на $M_1Q$. $R$ е аналогът на $Q$ спрямо $P$.}
+	\end{figure}
+	
+	Вижда се, че $\epsilon_{xx}=\frac{\Delta u_N}{\xi}$ е относителното удължение (единствено в посока $M\xi$) на дадена отсечка (или вектор), разполагаща се върху $M\xi$. По аналогичен начин може да бъде получено отместването $\boldsymbol{\Delta U_P}=\boldsymbol{U_P}-\boldsymbol{ U_M}$ на отсечката $MP$, която лежи върху $M\eta$:
+	\begin{equation}
+		\begin{aligned}
+			&\Delta u_P =\frac{1}{2}\epsilon_{xy}\eta-\omega_{xy}\eta,\\
+			&\Delta v_P =\epsilon_{yy}\eta,\\
+			&\Delta w_P =\frac{1}{2}\epsilon_{yz}\eta+\omega_{yz}\eta.
+		\end{aligned}
+		\label{eq:displacement_v}
+	\end{equation}
+	Съответно $\epsilon_{yy}=\frac{\Delta v_P}{\eta}$. Второто уравнение на \ref{eq:displacement_u} се разделя на $\xi$, първото на \ref{eq:displacement_v} на $\eta$, резултатите се събират и се получава $\epsilon_{xy} = \frac{\Delta v_N}{\xi} + \frac{\Delta u_P}{\eta}$. За да се намерят числителите и знаменателите, $\mathbf{MM'}$ и $\mathbf{MN'}$ се разбиват на линейни комбинации от единичните вектори, колинеарни съответно на $M\xi, M\eta, M\zeta$, а именно $\mathbf{MM'}=\mathbf{MM_0}+\mathbf{M_0M_1}+\mathbf{M_1M'},\quad \mathbf{MN'}=\mathbf{MN_0}+\mathbf{N_0N_1}+\mathbf{N_1N'}$. 
+	Следователно $\mathbf{M'N'}=\mathbf{MN'}-\mathbf{MM'}=\mathbf{M_0N_0}+\mathbf{QN_1}+(\mathbf{N_1N'}-\mathbf{M_1M}')$. 
+	Тук векторът, колинеарен на $M\eta$, е $\mathbf{QN_1}$ и $\|\mathbf{QN_1}\|=\Delta v_N$. 
+	От друга страна, тъй като за отместването $MM_0$ се предполага, че е малко, $\xi \approx \|\mathbf{M_0N_0}\| = \|\mathbf{M_1Q}\|$, което, комбинирано с факта, че $MN\perp NQ$, влече $\frac{\Delta v_N}{\xi} \approx tg(\alpha) \overset{\text{$\alpha \approx0$}}{\approx} sin(\alpha) \overset{\text{$\alpha \approx0$}}{\approx} \alpha$. По аналогичен начин се получава $\frac{\Delta u_P}{\eta} \approx \beta \Rightarrow \epsilon_{xy} \approx \alpha + \beta$, което е точно ъгълът, с който се изменя проекцията върху $M\xi\eta$ на деформацията на $\angle NMP$.\\
+	
+	Аналогично може да се покаже, че $\epsilon_{xz}$ и $ \epsilon_{yz}$ определят измененията на правите ъгли между двойките направления $M\xi, M\zeta$ и $M\eta, M\zeta$.\\
+	Величините $\epsilon_{xx}, \epsilon_{yy}, \epsilon_{zz}$ се наричат линейни компоненти на деформацията, а $\epsilon_{xy}, \epsilon_{xz}, \epsilon_{yz}$ - ъглови компоненти на деформацията.\\
+	От уравненията \ref{eq:displacement_u} и \ref{eq:displacement_v} се вижда, че $\omega_{xy} = \frac{1}{2}(\frac{\Delta v_N}{\xi}-\frac{\Delta u_P}{\eta}) \approx \frac{\alpha - \beta}{2} \Rightarrow \omega_{xy}$ е ъгълът, на който разглежданата еластична среда се завърта в равнината $M\xi\eta$ ($\alpha$ радиана в положителна посока и $\beta$ радиана в отрицателна посока). Аналогичен смисъл имат $\omega_{yz},\omega_{zx}$.
+	
+	\subsection{Напрежение}
+	Земната еластична среда изпитва деформация под влиянието на външни сили, които възникват вследствие на тектонски процеси \cite{geofizika_chast1}. Тази деформация зависи от големината и направлението на тези сили. При това възникват вътрешни сили, които им противодействат и ги уравновесяват - те се наричат еластични напрежения. Ако се разгледа даден обем от едно еластично тяло, към което са приложени външни сили, то за да остане този обем в равновесие, трябва да се приложат повърхностни сили $\mathbf{P}$, които да заменят влиянието на изолираната част от еластичното тяло (Фиг. \ref{fig:stress_tensor}).
+	
+	Избира се една точка от повърхността на обема и елементарна площ $dS$, чиято ориентация се определя от единичния вектор на нормалата $\boldsymbol{n}$. Ако резултантата на повърхностните сили за $dS$ е $\boldsymbol{dt}$, то под еластично напрежение в точката ще се разбира $\displaystyle \frac{\boldsymbol{dt}}{S(dS)}$=$\boldsymbol{t_n}$. Векторът $\boldsymbol{t_n}$ не съвпада с нормалата на $dS$ $\boldsymbol{n}$ по направление, затова може да се разбие на два вектора - $\boldsymbol{\sigma_n}$, колинеарен на $\boldsymbol{n}$ и наричан нормално напрежение и $\boldsymbol{\tau_{n}}$ - тангенциално/срязващо напрежение.
+	
+	Величините, определящи напрежението в дадена точка на еластичната среда, се дефинират по следния начин: избира се елементарната площ $dS$ като триъгълник, чиито върхове лежат върху координатните оси на системата $O_{xyz}$ (Фиг. \ref{fig:stress_tensor}). Чрез площта $dS$ и координатните равнини $O_{xy},O_{yz},O_{xz}$ се отсича тетраедър и за да остане той в равновесие, трябва сумата от силите, които действат върху равнините му, да е $0$. Напреженията върху стените на тетраедъра, перпендикулярни на $O_{xy},O_{yz},O_{xz}$, се означават съответно с $\boldsymbol{t_z}, \boldsymbol{t_x}, \boldsymbol{t_y}$. От горното условие се получава следното уравнение:
+	\begin{align*}
+		\boldsymbol{t_n}dS = \boldsymbol{t_x}S_{yz}+\boldsymbol{t_y}S_{xz}+\boldsymbol{t_z}S_{xy}.
+	\end{align*}
+	Но всяко лице на стена на тетраедъра може да се изрази чрез проекция на $dS$ върху съответната повърхнина, което дава следния вид на уравнението
+	\begin{align*}
+		\boldsymbol{t_n}dS = dS(\boldsymbol{t_x}cos(n,x)+\boldsymbol{t_y}cos(n,y)+\boldsymbol{t_z}cos(n,z)).
+	\end{align*}
+	С $t_{nx},t_{ny},t_{nz}$ се означават дължините на проекциите на $\boldsymbol{t_n}$ върху съответните координатни оси, а проекциите на $\boldsymbol{t_x},\boldsymbol{t_y},\boldsymbol{t_z}$ - съответно със $\sigma_x,\tau_{xy},\tau_{xz};\tau_{yx},\sigma_y,\tau_{yz};\tau_{zx},\tau_{zy},\sigma_z$. Тогава горното векторно уравнение може да се замени със следните скаларни уравнения:
+	\begin{align*}
+		t_{nx} = \sigma_xcos(n,x)+\tau_{yx}cos(n,y)+\tau_{zx}cos(n,z),\\
+		t_{ny} = \tau_{xy}cos(n,x)+\sigma_ycos(n,y)+\tau_{zy}cos(n,z),\\
+		t_{nz} = \tau_{xz}cos(n,x)+\tau_{yz}cos(n,y)+\sigma_zcos(n,z).
+	\end{align*}
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.9\textwidth]{stress_tensor_CauchyTh.png}
+		\caption{\label{fig:stress_tensor}Ляво - вътрешни и външни сили на обем в равновесие. Дясно - Пирамида, 3 от чиито страни са перпендикулярни на някоя ос.}
+	\end{figure} 
+	Деветте компоненти на $\boldsymbol{t_x},\boldsymbol{t_y},\boldsymbol{t_z}$ определят напълно напрежението в дадена точка и нейната околност. Те са компонентите на тензора на напрежението.
+	
+	Означаваме масовите сили с $Xdm,Ydm,Zdm$, където $dm=\rho dV$. Използвайки втория закон на Нютон, е получава:
+	\begin{align*}
+		\int_V(X-\frac{d^2u}{dt^2})\rho dV+\int_St_{nx}dS=0.
+	\end{align*}
+	Последователно се извежда
+	\begin{align*}
+		\int_St_{nx}dS=\int_S(\sigma_xcos(n,x)+\tau_{yx}cos(n,y)+\tau_{zx}cos(n,z))dS\overset{\text{Green}}{=}\int_V(\frac{\partial \sigma_x}{\partial x}+\frac{\partial \tau_{yx}}{\partial y}+\frac{\partial \tau_{zx}}{\partial z})dV,
+	\end{align*}
+	\begin{align}
+		\rho \frac{d^2u}{dt^2} = \rho X + \frac{\partial \sigma_x}{\partial x}+\frac{\partial \tau_{yx}}{\partial y}+\frac{\partial \tau_{zx}}{\partial z}.\label{eq:stress2}
+	\end{align}
+	Аналогично и
+	\begin{align}
+		\rho \frac{d^2v}{dt^2} = \rho Y + \frac{\partial \tau_{xy}}{\partial x} + \frac{\partial \sigma_y}{\partial y}+\frac{\partial \tau_{zy}}{\partial z} \label{eq:stress3},
+		\\
+		\rho \frac{d^2w}{dt^2} = \rho Z + \frac{\partial \tau_{xz}}{\partial x} + \frac{\partial \tau_{yz}}{\partial y}+\frac{\partial \sigma_z}{\partial z}. \label{eq:stress4}
+	\end{align}
+	
+	Може да се докаже, че тензорът $\tau$ е симетричен \cite{SteinWysession2003}. Разглежда се въртящият момент около оста $Oz$ на правоъгълник със страни, успоредни на координатните оси $x$ и $y$, които имат дължини съответно $dx$ и $dy$ (Фиг. \ref{fig:symetric_stress}). Ако въртящият момент е $0$, то ъгловата скорост ще бъде константна и блокът няма да започне да се върти, ако е в покой. Тъй като въртящ момент се създава от произведението на сила и дължина на рамо, $\sigma_{xy}$ и $\sigma_{yx}$, действащи по координатните оси, няма да създадат такъв. 
+	Всяка от останалите компоненти на напрежението допринася количество към въртящия момент, равно на големината на компонентата, умножена по дължината на рамото, чрез което действа, и по дължината на страната, върху която действа. Дължините на раменете са $dx$ и $dy$ за тангенциалното напрежение и $\frac{dx}{2}$ и $\frac{dy}{2}$ за нормалното напрежение. Ако има масови сили, то те са действат в центъра на правоъгълника и приносът им към въртящият момент е $f_idxdy$, умножено по $\frac{dx_i}{2}$. За въртящия момент се получава следния израз:
+	\begin{align*}
+		\tau_3=\sigma_{x}dy\frac{dy}{2}-(\tau_{yx}+\frac{\partial\tau_{yx}}{\partial y}dy)dxdy + (\sigma_{y}+\frac{\partial \sigma_{y}}{\partial y}dy)dx\frac{dx}{2} \\
+		+(\tau_{xy}+\frac{\partial\tau_{xy}}{\partial x}dx)dydx- (\sigma_{x}+\frac{\partial \sigma_{x}}{\partial x}dx)dy\frac{dy}{2}-\sigma_{y}dx\frac{dx}{2}\\
+		+f_2dxdy\frac{dx}{2} - f_1dxdy\frac{dy}{2}
+	\end{align*}
+	Тъй като системата е в покой, $\tau_3=0$. Разделя се на лицето на правоъгълника и при $dx\rightarrow0, dy\rightarrow0$ се получава
+	\begin{align*}
+		-\sigma_{yx}+\sigma_{xy}=0.
+	\end{align*}
+	Аналогично се показва и че $\sigma_{zy}=\sigma_{yz}$ и $\sigma_{xz}=\sigma_{zx}$. Така се показа, че тензорът на напреженията е симетричен.
+	\begin{figure}[h]
+		\centering
+		\hspace*{-2cm} % Moves the whole figure to the left
+		\includegraphics[width=0.9\textwidth]{symetric_stress.png}
+		\caption{\label{fig:symetric_stress}Възникнали напрежения при прилагане на въртяща сила около оста $x_3$(т. $O$)}
+	\end{figure}
+	\FloatBarrier
+	
+	\subsection{Модул на Юнг}
+	Напрежението и деформацията са пропорционални едно на друго и коефициентът на пропорционалност между тях е коефициентът на еластичност \cite{geofizika_chast1}.
+	
+	Разглежда се цилиндричен обем с дължина $l$, диаметър $d$ и вертикално сечение $S$. В горната част обемът е закрепен, а в долната му се прилага сила $\mathbf{P}$, насочена надолу по $O_x$. След деформацията под влияние на $\mathbf{P}$ обемът ще получи удължение $\Delta l$. Лесно е да се види, че за случая $\sigma_x = a_{11}\epsilon_{xx}$, но тъй като $\displaystyle \sigma_x = \frac{\|\mathbf{P}\|}{S},~\epsilon_{xx}=\frac{\Delta l}{l}$, то $\displaystyle \frac{\Delta l}{l}=\frac{\sigma_x}{E}$, където $E=a_{11}$ се нарича модул на Юнг или модул на надлъжна еластичност. При действието на силата $\mathbf{P}$ върху образеца освен относителното удължение се наблюдава и относително свиване $\frac{\Delta d}{d}$, където с $\Delta d$ е означена величината, с която се е изменил диаметърът на цилиндъра. Числото $\displaystyle \sigma = \frac{\frac{\Delta d}{d}}{\frac{\Delta l}{l}}$ се нарича модул на напречното свиване или коефициент на Поасон. Наблюдава се и формулата $\frac{\Delta d}{d}=\sigma\frac{\sigma_x}{E}$.
+	
+	\subsection{Зависимост между деформация и напрежение в изотропна среда}
+	
+	Разглеждаме връзката между деформация и напрежение в простия случай на изотропна среда \cite{geofizika_chast1}. За да се получи зависимостта между тях, се разглежда паралелепипед от еластичната среда с ръбове, успоредни на осите на координатната система $O_{xyz}$ (Фиг. \ref{fig:stresses_dependency}). Нека стените му се намират под нормалните напрежения $\sigma_x, \sigma_y, \sigma_z$. За удължението му в посока $O_x$ се получава $\displaystyle \epsilon_{xx}=\frac{\sigma_x}{E}-\sigma \frac{\sigma_y}{E}-\sigma \frac{\sigma_z}{E}= \frac{1}{E}(\sigma_x - \sigma (\sigma_y + \sigma_z))$. Аналогично се извежда за $y$ и $z$:
+	\begin{align}
+		\epsilon_{xx}= \frac{1}{E}(\sigma_x - \sigma (\sigma_y + \sigma_z)), \label{eq:strain1} \\
+		\epsilon_{yy}= \frac{1}{E}(\sigma_y - \sigma (\sigma_x + \sigma_z)), \label{eq:strain2}\\
+		\epsilon_{zz}= \frac{1}{E}(\sigma_z - \sigma (\sigma_x + \sigma_y)).\label{eq:strain3}
+	\end{align}
+	Оттук следва 
+	\begin{align}
+		\theta = \epsilon_{xx}+\epsilon_{yy}+\epsilon_{zz}= \frac{1}{E}(\sigma_x + \sigma_y + \sigma_z)(1 - 2\sigma) \label{5}.
+	\end{align}
+	Към \ref{eq:strain1} се прибавя и изважда $\displaystyle \frac{\sigma \sigma_x}{E}$, комбинира се с \ref{5} и се получава
+	$\displaystyle \epsilon_{xx} = \frac{\sigma_x}{E}(1+\sigma)-\frac{\sigma}{1-2\sigma}\theta$, 
+	откъдето следват пряко уравненията 
+	\begin{align}
+		\sigma_x = \frac{E}{1+\sigma}\epsilon_{xx} + \frac{E\sigma}{(1-2\sigma)(1+\sigma)}\theta,\label{eq:relation1}\\
+		\sigma_y = \frac{E}{1+\sigma}\epsilon_{yy} + \frac{E\sigma}{(1-2\sigma)(1+\sigma)}\theta,\label{eq:stress5}\\
+		\sigma_z = \frac{E}{1+\sigma}\epsilon_{zz} + \frac{E\sigma}{(1-2\sigma)(1+\sigma)}\theta.\label{eq:stress6}
+	\end{align}
+	Ако се положи $\displaystyle \lambda=\frac{E\sigma}{(1-2\sigma)(1+\sigma)},~ \mu = \frac{1}{2}\frac{E}{1+\sigma}$, то се получава
+	\begin{align*}
+		\sigma_x = 2\mu\epsilon_{xx} + \lambda\theta,\\ 
+		\sigma_y = 2\mu\epsilon_{yy} + \lambda\theta,\\
+		\sigma_z = 2\mu\epsilon_{zz} + \lambda\theta,
+	\end{align*}
+	като $\displaystyle E=\mu \frac{3\lambda+2\mu}{\lambda+\mu},~ \sigma=\frac{\lambda}{2(\lambda+\mu)}$. $\lambda$ и $\mu$ се наричат параметри на Ламé.
+
+	Сега ще бъде представена зависимостта между тангенциалното напрежение и компонентите на деформацията. Разглежда се паралелепипед, чиито ръбове са успоредни на координатните оси $O_x,O_y,O_z$. Взима се вертикалното му сечение - правоъгълника $ABCD$ (Фиг. \ref{fig:stress_on_rect}). Вписва се в него друг паралелепипед с вертикално сечение $A_1B_1C_1D_1$. Под действието на напрежение $\mathbf{P}$ (отговарящо на $\sigma_z$), насочено вертикално нагоре, паралелепипедите ще се деформират, като вертикалните ръбове ще се удължат, а хоризонталните ще се свият. Правоъгълникът $ABCD$ ще се деформира в $A'B'C'D'$, a $A_1B_1C_1D_1$ в успоредника $A'_1B'_1C'_1D'_1$. За простота може да се счита, че отсечките $AD$ и $A'D'$ остават на една права. Ъгълът $\phi$ се деформира във $\phi + \Delta \phi$. Нека дължината на $DC_1$ e $S$, a дължината на $D_1C_1$ е $S_1$. Напрежението върху $DC_1$ e $\mathbf{P}$, тоест силата е $\mathbf{P}S$, което значи, че напрежението върху $D_1C_1$ e $\displaystyle \frac{\mathbf{P}S}{S_1}=\mathbf{P}cos\phi$. Тангенциалното напрежение $\tau$, действащо върху $D_1C_1$, е $\tau_{D_1C_1}=\mathbf{P}cos\phi sin\phi$ (Фиг. \ref{fig:stresses_dependency}).
+	
+	\begin{figure}[h]
+		\centering
+		\hspace*{-2cm} % Moves the whole figure to the left
+		\includegraphics[width=1.3\linewidth]{both_shear_stress.png}
+		\caption{\label{fig:stress_on_rect}Сечение на еластичен обем преди и след прилагане на напрежение $\mathbf{P}$}
+	\end{figure} 
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.45\textwidth]{shear.png}
+		\caption{\label{fig:stresses_dependency}Големината на вектора $\mathbf{\tau}$ е проекцията на вектора на напрежението върху $D_1C_1$ или $Pcos\phi cos(90^{\circ} - \phi)=Pcos\phi sin\phi$}
+	\end{figure} 
+	
+	След деформацията, от една страна, $\displaystyle tg(\phi + \Delta \phi)=\frac{D'_1D'}{D'C'_1}$, от друга страна, предвид $tg \Delta \phi \approx \Delta \phi, tg^2 \Delta \phi \approx 0$
+	се получава \\
+	$\displaystyle tg(\phi + \Delta \phi)=\frac{tg \phi + tg \Delta \phi}{1-tg \phi tg \Delta \phi}=(tg \phi + tg \Delta \phi)(1+tg \phi tg \Delta \phi)\approx tg \phi + tg^2 \phi tg \Delta \phi + tg \Delta \phi\approx tg \phi + \Delta \phi(1 + \tg^2 \phi)=tg \phi + \frac{\Delta \phi}{cos^2 \phi}$. Като се вземе предвид, че $\displaystyle \frac{\Delta l}{l} = \frac{\sigma_z}{E} = \frac{\|\mathbf{P}\|}{E}$ и че $\displaystyle \frac{\Delta d}{d}=\sigma \frac{\sigma_z}{E}$, то следва, че 
+	$\displaystyle \frac{D'_1D'}{D_1D}=1+\frac{\|\mathbf{P}\|}{E}\xrightarrow{}
+	D'_1D'=D_1D(1+\frac{\|\mathbf{P}\|}{E})$ и $\frac{D'C_1'}{DC_1}=1-\sigma \frac{\|\mathbf{P}\|}{E}\xrightarrow{}
+	D'C'_1=DC_1(1-\sigma \frac{\|\mathbf{P}\|}{E})$\\
+	При малки $\displaystyle \frac{\|\mathbf{P}\|}{E}$ това дава $\displaystyle tg(\phi + \Delta \phi)= \frac{D'_1D'}{D'C'_1} = \frac{D_1D}{DC_1} \frac{1+ \frac{\|\mathbf{P}\|}{E}}{1-\sigma \frac{\|\mathbf{P}\|}{E}}\approx tg \phi (1+\frac{\|\mathbf{P}\|}{E})(1+\sigma\frac{\|\mathbf{P}\|}{E}) \approx tg \phi (1+\frac{\|\mathbf{P}\|}{E}+\sigma \frac{\|\mathbf{P}\|}{E})$. Двата израза се приравняват и се получава $\displaystyle \frac{\Delta \phi}{cos^2 \phi} = tg\phi (\frac{\|\mathbf{P}\|}{E}+\sigma \frac{\|\mathbf{P}\|}{E}) \xrightarrow[]{} \Delta \phi = sin \phi cos \phi \frac{1+\sigma}{E}\|\mathbf{P}\| = \frac{1+\sigma}{E}\tau_{D_1C_1}$\\
+	По подобен начин се извежда $\displaystyle \tau_{C_1B_1}=\|\mathbf{P}\|sin \phi cos \phi$, тоест $\tau_{C_1B_1}=\tau_{D_1C_1}=\tau$. Аналогично се показва и че $\displaystyle \Delta \psi = \frac{1+\sigma}{E}\tau_{C_1B_1} \xrightarrow{} \Delta \phi = \Delta \psi$, където $\psi = \angle B_1C_1C$, a $\psi+\Delta \psi=\angle B'_1C'_1C'$ следователно $\tau=2*\mu \Delta \phi$.
+	
+	Ъгъл $D_1C_1B_1$ се е изменил с $2\displaystyle \Delta \phi=\frac{\partial u}{\partial z}+\frac{\partial v}{\partial x}=\epsilon_{xz}$. Оттам се стига до
+	\begin{align}
+		\tau_{xz}=\mu\epsilon_{xz},\label{eq:relation4}\\
+		\tau_{xy}=\mu\epsilon_{xy},\label{eq:relation5}\\
+		\tau_{yz}=\mu\epsilon_{yz}.\label{eq:relation6}
+	\end{align}
+	
+	\subsection{Гранични условия}
+	
+	Нека разгледаме Земята в достатъчно малък регион, за да можем да използваме приближението за плоска Земя. Това ни позволява да моделираме ледник, разположен върху земната кора, като слой над полупространство - земната кора играе роля на полупространството отдолу, тъй като дебелината ѝ е от порядък по-голяма от тази на ледника, който се моделира със слоя отгоре. Освен с полупространството слоят граничи и с въздух.
+	
+	Границата между земя и въздух $\Gamma_F$ се характеризира с това, че напрежението в посока на нормалния вектор на повърхността е нулево или по-конкретно $\displaystyle \sum_{j=1}^{3} \sigma_{ij}n_j = 0$, $i=1,2,3$. 
+	За границата между два слоя с различни характеристики (земя/мантия или в случая ледник/земя, означаваме с $\Gamma_L$) искаме преместванията и напреженията от двете страни да са еднакви във всеки момент от времето.
+	\begin{align*}
+		u_1(x,y,z+,t)=u_2(x,y,z-,t),\\
+		v_1(x,y,z+,t)=v_2(x,y,z-,t),\\
+		w_1(x,y,z+,t)=w_2(x,y,z-,t),\\
+		\sigma_z(x,y,z+,t)=\sigma_z(x,y,z-,t),\\
+		\tau_{xz}(x,y,z+,t)=\tau_{xz}(x,y,z-,t),\\
+		\tau_{yz}(x,y,z+,t)=\tau_{yz}(x,y,z-,t).
+	\end{align*}
+	
+	Друг вид ''граници'' са тези в края на взетия регион при компютърната симулация. Въпреки, че там няма промяна в характеристиките на средата, се натрупва числена грешка. Този проблем би могъл да се избегне чрез създаване на абсорбиращи граници, но това е доста сложна задача, затова този проблем ще бъде заобиколен, като отместването по възлите от изкуствените граници бъде занулено.
+	
+	\section{Метод на крайните елементи}
+	Моделирането на сеизмични вълни в ледник представлява сложен проблем поради нееднородната геометрия на средата и наличието на различни гранични условия – лед, скала и свободна повърхност. За да бъде симулацията достатъчно реалистична и същевременно ефикасна от гледна точка на изчислителните ресурси, е необходимо използването на числен метод за решаване на диференциални уравнения, който да предлага гъвкавост при приближаване на геометрията и оптимална структура на възникналите системи уравнения.
+	
+	Числени методи, които биха били подходящи, са методът на крайните елементи \cite{larson2013finite},\cite{igel2017computational}, \cite{zienkiewicz2013fem},\cite{zak2024_fem_wave_prop},\cite{lee2021finite},\cite{hughes1987finite} и прекъснатият метод на Гальоркин \cite{hesthaven2008nodal},\cite{delcourte2009highorder},\cite{cockburn2003discontinuous},\cite{hansbo2003discontinuousCR}, който представлява смесица между метода на крайните елементи и метода на крайните обеми. Основният му недостатък, обаче, е, че извеждането му за конкретното уравнение води до система линейни уравнения, която е значително по-сложна от получената чрез МКЕ и съответно матриците биха имали повече (приблизително 3 до 5 пъти) ненулеви елементи. Поради тази причина прекъснат метод на Гальоркин не би бил изгоден за реализиране, докато не бъде подобрена настоящата апаратура.
+	
+	Методът на крайните елементи (МКЕ) е числен метод, използван за приближено решаване на диференциални уравнения. Той е особено подходящ в този контекст, защото позволява точно представяне на сложни геометрии и различни типове среди (лед и скала), предлага ясен начин за въвеждане на разнообразни гранични условия и може да бъде реализиран ефективно в двумерна постановка, а впоследствие и разширен към тримерна.
+	
+	Използването на МКЕ в настоящата работа е мотивирано именно от тези предимства. Той служи като естествено свързващо звено между теоретичния модел на сеизмичните вълни и практическите експерименти, описани в следващите глави.
+	
+	\subsection{Векторно-матрична форма и размерности}
+	
+	Преди да бъде изложен самият числен метод, първо се представят досегашните резултати от \ref{eq:stress2}, \ref{eq:stress3}, \ref{eq:stress4}, \ref{eq:relation1}-\ref{eq:relation6} 
+	във векторно-матрична форма (масовите сили биват пренебрегнати, тъй като в сравнение с напреженията, достигащи хиляди нютони на квадратен метър, са нищожни):
+	\begin{align}
+		\rho \ddot{\mathbf{u}}- \nabla . \sigma= \mathbf{f}(\mathbf{x}), \mathbf{x} \in \Omega, \label{eq:6}\\
+		\sigma = 2\mu \epsilon (\mathbf{u})+\lambda(\nabla . \mathbf{u})E, \mathbf{x} \in \Omega, \label{eq:7}\\
+		\sigma . \mathbf{n} = \mathbf{0}, \mathbf{x} \in \Gamma_F, \label{eq:8}\\
+		\mathbf{u}_-=\mathbf{u}_+, \mathbf{x} \in \Gamma_L, \label{eq:9}
+	\end{align}
+	
+	където 
+	\[
+	\mathbf{u} = 
+	\begin{pmatrix}
+		u(\mathbf{x},t)\\v(\mathbf{x},t)\\w(\mathbf{x},t)
+	\end{pmatrix},
+	\mathbf{f} = 
+	\begin{pmatrix}
+		f_x(\mathbf{x},t)\\f_y(\mathbf{x},t)\\f_z(\mathbf{x},t)
+	\end{pmatrix},
+	\epsilon = \frac{1}{2}(\nabla \mathbf{u} + (\nabla \mathbf{u})^T),
+	\]
+	\[
+	\sigma = 
+	\begin{pmatrix}
+		\sigma_{x} & \tau_{xy} & \tau_{xz} \\
+		\tau_{yx} & \sigma_{y} & \tau_{yz} \\
+		\tau_{zx} & \tau_{zy} & \sigma_z
+	\end{pmatrix}
+	,
+	E=
+	\begin{pmatrix}
+		1 & 0 & 0 \\
+		0 & 1 & 0 \\
+		0 & 0 & 1
+	\end{pmatrix}.
+	\]
+	Величините, които участват, имат следните размерности:
+	
+	\begin{align*}
+		[\rho ]=\frac{M}{L^3}, \\
+		[u_i]=L,\\
+		[\epsilon_{ij}]=1,\\
+		[\lambda]=[\mu ]=[\sigma_{ij}]=\frac{M}{T^2L},\\
+		[f_i]=\frac{M}{L^2T^2}.\\
+	\end{align*}
+	
+	\subsection{Общ вид на метода на крайните елементи}
+	
+	Методът на крайните елементи се основава на преформулирането на дадено диференциално уравнение като вариационно уравнение \cite{larson2013finite}. Това се случва чрез умножение на двете страни с тестова функция $v$ от функционално пространство $V$, което обикновено има специални свойства, зависещи от проблема. Преформулирането прави проблема в известен смисъл еднакво ''труден'' за произволна област - именно затова методът е предпочитан за проблеми със сложна геометрия. 
+	
+	Тази вариационна формулировка има вида $a(\tilde{u},v)=F(v)$, където $a$ е билинейна форма, а $F$ е функционал, и в нея се търси $\tilde{u} \in V$. Функционалното пространство $V$ съдържа в себе си пространството, в което се намира оригиналното $u$ от диференциалната формулировка. Това означава, че решение на диференциалната формулировка е решение на вариационната формулировка, но обратното не е задължително. Теоремата на Lax-Millgram показва, обаче, че при допускания за непрекъснатост и коерцитивност на билинейната форма и непрекъснатост на функционала вариационната задача има единствено решение.
+	
+	Друга основна характеристика на метода на крайните елементи е, че областта се разбива на крайни елементи (т. нар. триангулация), които в едномерния случай са интервали с общи краища, в двумерния случай може да са произволна форма (най-често триъгълници, квадрати или шестоъгълници), а в триизмерния случай най-често са тетраедри. Съвкупността от всички възли и елементи от дискретизирането на областта се нарича мрежа.
+	
+	Тъй като в общия случай не може да се намери аналитично решение на вариационната формулировка, целта е да се да намери приближено решение ${u_h}$ от крайномерно подпространство на $V$ $V_h$, което се избира според конкретната задача. 
+	
+	Въпросното пространство $V_h$ е тясно свързано с областта, в която се решава задачата, и по-конкретно с възлите от мрежата. Представянето на $u_h$ и $v$ като линейни комбинации на базисни функции на пространството $V_h$ естествено влече преминаването към система линейни уравнения или матрично уравнение, в което векторът с неизвестни съдържа коефициентите на $u_h$. Когато се избере подходящ базис на $V_h$ според мрежата на областта, матриците в полученото матрично уравнение стават разредени, което влече огромно преимущество от гледна точка на наличната изчислителна мощ.
+	
+	
+	\subsection{Пространството на по части линейни полиноми}\label{subsec:223}
+	
+	Първо, ще бъде изложен случаят за линейните полиноми на една променлива \cite{larson2013finite}. В този случай областта е интервал, който е разделен на подинтервали - $1D$ елементи. За всеки елемент от мрежата се взима стойността на $\tilde{u}$ в краищата - това се наричат степени на свобода. Целта е броят на базисните функции на $V_h$ да е равен на броя на степените на свобода. По този начин за всяко състояние на $\tilde{u}$ съществува единствена функция от $V_h$ - $u_h$. Освен това скаларните произведения на базисните функции участват в матрицата от матричното уравнение, което се получава, следователно, за да бъде тя разредена, трябва голяма част от скаларните произведения също да са нулеви. За тази цел се избират функции с краен носител - за всеки възел (степен на свобода) се въвежда функция, която е $0$ върху всеки интервал, който не съдържа въпросния възел (в частност е 1 в него и 0 във всички останали възли). В такъв случай удобен избор за $V_h$ би било пространството от по части линейни полиноми - тогава всяко $u_h \in V_h$ е линеен полином върху кой да е елемент. Естествен избор за базис на $V_h$ биха били така наречените функции шапка, които се разглеждат по-надолу. Разсъжденията за по части полиноми от по-висока степен са аналогични, единствената разлика е, че те се нуждаят от повече степени на свобода. Преформулираната задача се нарича задача на Ritz-Galerkin.
+	
+	С $P_1(K)$ се означава пространството от линейни полиноми на произволен брой променливи върху произволен елемент $K$. За даден елемент се разглеждат полиномите от ред, ненадминаващ 1:
+	
+	$P_1(K)=
+	\begin{cases}
+		\{v:v=a+bx, x \in K, a, b \in \mathbb{R}\} & \text{за $1D$,}\\
+		\{v:v=a+bx+cy, (x,y) \in K, a, b, c \in \mathbb{R}\} & \text{ за $2D$ триъгълник,}\\
+		\{v:v=a+bx+cy+dz, (x,y,z) \in K, a, b, c, d \in \mathbb{R}\} & \text{за $3D$ тетраедър.}
+	\end{cases}
+	$ \\
+	Отново, всеки полином се определя еднозначно от стойностите си в ъглите/краищата на $K$. Това значи, че всяко $v \in V_h$ може да се запише като
+	$
+	v =
+	\begin{cases} 
+		\lambda_1\alpha_1+\lambda_2\alpha_2 & \text{в } $1D$, \\
+		\lambda_1\alpha_1+\lambda_2\alpha_2+\lambda_3\alpha_3 & \text{в } $2D$, \\
+		\lambda_1\alpha_1+\lambda_2\alpha_2+\lambda_3\alpha_3+\lambda_4\alpha_4 & \text{в } $3D$
+	\end{cases}
+	$
+	, където $\alpha_i=v(N_i)$, а с $N_i$ са означени върховете на елемента и $\lambda_j$ са вече споменатите функции шапка, такива че $\lambda_j(N_i)=
+	\begin{cases} 
+		1 & \text{, } i=j \\
+		0 & \text{, } i \neq j \\
+	\end{cases}$
+	. На фигури \ref{fig:1D_hats} и \ref{fig:2D_hats} са представени графики на $\lambda_i$ за $1D$ и $2D$ за така наречените единични елементи (интервала $[0,1]$ и триъгълника с координати $(0,0),(1,0),(0,1))$, а на фигура \ref{fig:lambda5} е изобразена една функция шапка върху примерна триангулация на дадена област.
+	\begin{figure}[t]
+		\centering
+		\includegraphics[width=0.8\linewidth]{hatFunc1D.png}
+		\caption{Функциите шапка за единичния $1D$ елемент. В случая $\lambda_1=x$ и $\lambda_2=1-x$}
+		\label{fig:1D_hats}
+	\end{figure}
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.8\linewidth]{hatFunc2D.png}
+		\caption{Функциите шапка за единичния $2D$ елемент. В случая $\lambda_1=1-y-x$, $\lambda_2=x$ и $\lambda_3=y$}
+		\label{fig:2D_hats}
+	\end{figure}
+	%При дадена триангулация на дадена област $\mathcal{K}$=$\{K_i\}_{i=1}^n$ на n елемента ще конструираме по части линейни полиноми, като наложим изисквания върху всяко $K_i$ всяка функция v да е от $P_1(K_i)$ и да е непрекъсната по границите между елементите. Така получаваме пространство от непрекъснати по части линейни полиноми $V_h=\{v:v \in C^0(\Omega), v|_{K_i} \in P_1(K_i), \forall K_i \in \mathcal{K}\}$. Тук с $C^0(\Omega)$ сме означили пространството от всички непрекъснати функции върху $\Omega$. Върховете на триъгълниците от $\mathcal{K}$ ще наричаме още възли. Стойностите във възлите определят по единствен начин функция от $P_1(K_i)$ за всяко $K_i$ от $ \mathcal{K} $ и следователно всяка функция от $V_h$ се определя еднозначно от стойностите си във възлите. Сега, нека има две функции $v_1, v_2 \in V_h$ с еднакви стойности във всички възли и нека $K_1$ и $K_2$ са съседни елементи. Щом $v_1$ и $v_2$ са линейни полиноми в $K_1$ и $K_2$, то те са линейни и в общата им стена(ръб), а щом са линейни там и съвпадат в краищата на стената(ръба), то значи съвпадат и във вътрешността на стената(ръба). Така показахме, че стойностите във възлите взаимно еднозначно определят функция v от $V_h$. Това значи, че можем да използваме стойностите във възлите като степени на свобода и да въведем съответстващ базис $\{\phi_i\}_{i=1}^m$ на $V_h$: $\phi_i(N_j)=
+	%	\begin{cases} 
+		%		1 & \text{, } i=j, \\
+		%		0 & \text{, } i \neq j \\
+		%	\end{cases}
+	%	$. Всяка базисна функция $\phi_j$ е непрекъсната, по части линейна и с носител само върху триъгълниците с връх $N_j$.
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.8\linewidth]{V_h hat.png}
+		\caption{Примерна област и базисната функция $\phi_5$, която не е 0 само в 5-ия възел}
+		\label{fig:lambda5}
+	\end{figure}
+	Базисът $\{\lambda_i\}_{i=1}^m$ ще бъде използван, за да се приближи дадена функция $f \in L_2(\Omega)$.
+	
+	\subsection{$L_2$ проекция}
+	При дадена функция $f \in L_2(\Omega)$ $L_2$ проекцията на $f$ върху $V_h$ ще означим с $P_{hf} \in V_h$ и тя се дефинира чрез $\int_\Omega (f-P_{hf})vdx=0, \forall v \in V_h$, което е равносилно на 
+	
+	\begin{align*}
+		\int_\Omega (f-P_{hf})\phi_idx=0, i=1,2\dots m,
+	\end{align*}
+	където $\phi_i$ са базисните функции на $V_h$($\lambda_i$ от предната глава). Но $P_{hf}=\sum_{j=1}^m\xi_j\phi_j$ и това влече
+	\begin{align*}
+		\int_\Omega P_{hf}\phi_idx=\int_\Omega\sum_{j=1}^m \xi_j\phi_j\phi_idx=\sum_{j=1}^m \xi_j\int_\Omega\phi_j\phi_idx, i=1,2\dots m.
+	\end{align*}
+	
+	Въвеждат се означенията 
+	\begin{align*}
+		M_{ij}=\int_\Omega\phi_j\phi_idx, i,j=1,2\dots m,\\
+		b_i=\int_\Omega f\phi_idx, i=1,2\dots m,\\
+		M=\{M_{ij}\}_{i,j=1}^m, \mathbf{b}=\{b_i\}_{i=1}^m, \boldsymbol{\xi}=\{\xi_i\}_{i=1}^m,
+	\end{align*}
+	чрез които системата уравнения добива следния вид
+	\begin{align*}
+		M\boldsymbol{\xi}=\mathbf{b}.
+	\end{align*}
+	
+	Всъщност изборът на базис с краен носител означава, че ненулевите елементи на $M$ ще са тези, чиито ред и стълб отговарят на възли от един и същ елемент.
+	
+	Когато се намери $\boldsymbol{\xi}$, ще се намерят и коефициентите на $P_{hf}$.\\
+	Приложени са без доказателство някои свойства на $L_2$ проекцията:
+	\begin{itemize}
+		\item $P_{hf}$ винаги съществува и е единствена
+		\item Изпълнено е $\lVert f-P_{hf} \rVert_{L_2(\Omega)} < \lVert f-v \rVert_{L_2(\Omega)}, \forall v \in V_h$
+		\item $\lVert f-P_{hf} \rVert_{L_2(\Omega)}^2 \leq C\sum_{K \in \mathcal{K}}h_K^4 \lVert f'' \rVert_{L_2(K)}$
+	\end{itemize}
+	
+	\subsection{Пресмятане на $M$ и $\mathbf{b}$}
+	
+	Когато базисните функции на $V_h$ са избрани както е описано в подглава \ref{subsec:223}, две от базисните функции имат ненулево произведение единствено когато участват като върхове в един и същ триъгълник, затова ще е по-ефикасно, ако $M$ се пресметне чрез така наречените локални матрици на масата
+	\[
+	M_{K_s}=\int_{K_s}
+	\begin{pmatrix}
+		\phi_i\phi_i & \phi_i\phi_j & \phi_i\phi_k \\
+		\phi_j\phi_i & \phi_j\phi_j & \phi_j\phi_k \\
+		\phi_k\phi_i & \phi_k\phi_j & \phi_k\phi_k
+	\end{pmatrix}.
+	\]
+	Тук $\phi_i,\phi_j,\phi_k$ са съответно базисните функции върху елемента $K$ \cite{larson2013finite}. Елементите на $M_{K_s}$ се прибавят към елементите на $M$, които са на ред и стълб, които съответстват на номера на базисните функции - например $\phi_j\phi_i$ ще бъде прибавен към $j$-ти ред и $i$-ти стълб, а $\phi_k\phi_k$ - към $k$-ти ред, $k$-ти стълб. Аналогично 
+	\[
+	\boldsymbol{b_{K_s}}=\int_{K_s}
+	\begin{pmatrix}
+		\phi_i f\\
+		\phi_j f\\
+		\phi_k f
+	\end{pmatrix}
+	\]
+	и $\phi_i f$ ще бъде прибавено към $i$-тия ред на $\mathbf{b}$ (аналогично за $j$ и $k$).
+	\subsection{Вариационна формулировка}
+	
+	В тази глава системата уравнения \eqref{eq:6}--\eqref{eq:9} ще бъде приведена към вариационна формулировка \cite{larson2013finite}. За целта ще се търси функцията $\mathbf{u}$ във $V=(H^1(\Omega ))^3$ - пространство от наредени тройки от функции, които имат първа слаба производна в $\Omega$ и за които $\lVert v \rVert_{H^1(\Omega)} =\sqrt{\int_\Omega v^2 + v'^2 dx} < \infty $. Умножават се скаларно двете страни на \eqref{eq:6} с произволна тестова функция $\mathbf{v} \in V$ и се правят следните пресмятания:
+	\\
+	\begin{tabular}{l}
+		$\rho (\ddot{\mathbf{u}},\mathbf{v})-(\nabla . \sigma, \mathbf{v})=(\mathbf{f},\mathbf{v}),$ \\
+		$(\nabla . \sigma, \mathbf{v}) =\displaystyle \int_\Omega (\nabla . \sigma). \mathbf{v} d\Omega= \sum_{j=1}^3\left( \int_\Omega \nabla . \boldsymbol{\sigma_j} v_j d\Omega\right) \overset{\text{Green}}{=} \sum_{j=1}^3( \int_{\partial \Omega} \boldsymbol{\sigma_j} \mathbf{n}v_jds - \int_\Omega \boldsymbol{\sigma_j}. \nabla v_j d\Omega)$ \\
+		$=  (\sigma . \mathbf{n, \mathbf{v}})_{\Gamma_L} - (\sigma : \nabla \mathbf{v}),$
+	\end{tabular}
+	\\
+	където $\boldsymbol{\sigma_j}$ е j-тият ред на $\sigma$, $\mathbf{n}$ е нормалният вектор на $\partial \Omega$, (A:B)=$\sum_{i,j=1}^3A_{ij}B_{ij}$ е двойно скаларно произведение и е взето предвид уравнение \eqref{eq:8}. 
+	
+	След това се обръща се внимание на факта, че $\sigma$ е симетричен тензор и ако се умножи (тук се визира двойно скаларно произведение) с антисиметричен тензор, резултатът ще бъде сбор от произведенията на диагоналните елементи на двата тензора. Сега се разбива $\displaystyle \nabla \mathbf{v}=\frac{1}{2}(\nabla \mathbf{v} + (\nabla \mathbf{v})^T) + \frac{1}{2}(\nabla \mathbf{v} - (\nabla \mathbf{v})^T)$ на сбор от симетричен и антисиметричен тензор, като първото събираемо е всъщност $\epsilon(\mathbf{v})$, а диагоналните елементи на второто събираемо са нули. Това значи, че $(\sigma : \nabla \mathbf{v}) = (\sigma(\mathbf{u}), \epsilon(\mathbf{v}))  \overset{\text{\ref{eq:7}}}{=}2\mu (\epsilon(\mathbf{u}):\epsilon(\mathbf{v}))+\lambda (\nabla . \mathbf{u} E: \epsilon(\mathbf{v}))$. 
+	% Обръщаме внимание на факта, че 
+	% \[
+	% ( E: \epsilon(\mathbf{v}))=(
+	% \begin{pmatrix}
+		% 1 & 0 & 0 \\
+		% 0 & 1 & 0 \\
+		% 0 & 0 & 1
+		% \end{pmatrix}
+	% : 
+	% \frac{1}{2}
+	% (\begin{pmatrix}
+		% \frac{\partial v_1}{\partial x_1} & \frac{\partial v_1}{\partial x_2} & \frac{\partial v_1}{\partial x_3} \\
+		% \frac{\partial v_2}{\partial x_1} & \frac{\partial v_2}{\partial x_2} & \frac{\partial v_2}{\partial x_3} \\
+		% \frac{\partial v_3}{\partial x_1} & \frac{\partial v_3}{\partial x_2} & \frac{\partial v_3}{\partial x_3}
+		% \end{pmatrix}
+	% +
+	% \begin{pmatrix}
+		% \frac{\partial v_1}{\partial x_1} & \frac{\partial v_2}{\partial x_1} & \frac{\partial v_3}{\partial x_1} \\
+		% \frac{\partial v_1}{\partial x_2} & \frac{\partial v_2}{\partial x_2} & \frac{\partial v_3}{\partial x_2} \\
+		% \frac{\partial v_1}{\partial x_3} & \frac{\partial v_2}{\partial x_3} & \frac{\partial v_3}{\partial x_3}
+		% \end{pmatrix}
+	% ))
+	% =\frac{1}{2}(\frac{\partial v_1}{\partial x_1} + \frac{\partial v_2}{\partial x_2} + \frac{\partial v_3}{\partial x_3} + \frac{\partial v_1}{\partial x_1} + \frac{\partial v_2}{\partial x_2} + \frac{\partial v_3}{\partial x_3}) = \nabla . \mathbf{v}
+	% \]
+	% Виждаме, че в общия случай по същата логика се получава $(E:\mathbf{y}=Trace(\mathbf{y}))$.
+	% Получаваме 
+	% \\
+	% $\rho (\ddot{\mathbf{u}},\mathbf{v})- (\sigma . \mathbf{n, \mathbf{v}})_{\Gamma_L} +(\sigma : \nabla \mathbf{v})=(\mathbf{f},\mathbf{v}).$ Може да игнорираме втория член, тъй като граници "отдолу" и "отстрани" на практика няма.
+	
+	За да се стигне до вариационната формулировка, ще се наложи да се преправи малко полученото дотук. За тази цел се въвеждат
+	\[
+	\boldsymbol{\sigma} = 
+	\begin{pmatrix}
+		\sigma_{11}\\\sigma_{22}\\\sigma_{33}\\
+		\sigma_{12}\\\sigma_{23}\\\sigma_{31}
+	\end{pmatrix},
+	\boldsymbol{\epsilon} = 
+	\begin{pmatrix}
+		\epsilon_{11}\\\epsilon_{22}\\\epsilon_{33}\\
+		2\epsilon_{12}\\2\epsilon_{23}\\2\epsilon_{31}
+	\end{pmatrix}.
+	\]
+	Тогава \eqref{eq:7} може да се запише като $\boldsymbol{\sigma} = D\boldsymbol{\epsilon}$, където 
+	\[
+	D=
+	\begin{pmatrix}
+		2\mu+\lambda & \lambda & \lambda & 0 & 0 & 0\\
+		\lambda & 2\mu+\lambda & \lambda & 0 & 0 & 0\\
+		\lambda & \lambda & 2\mu+\lambda & 0 & 0 & 0\\
+		0 & 0 & 0 & \mu & 0 & 0\\
+		0 & 0 & 0 & 0 & \mu & 0\\
+		0 & 0 & 0 & 0 & 0 & \mu
+	\end{pmatrix}.
+	\]
+	С тези означения $(\sigma : \epsilon) = \boldsymbol{\epsilon}^T.\boldsymbol{\sigma}$. Така вариационната формулировка добива вида
+	\begin{align}
+		\text{Търси се } \mathbf{u} \in V: \notag\\
+		a(\mathbf{u}, \mathbf{v})=F(\mathbf{v}), \forall \mathbf{v} \in V, \label{10}\\
+		\mathbf{u_-}=\boldsymbol{u_+},\mathbf{x} \in \Gamma_L\notag,
+	\end{align}
+	където $\displaystyle a(\mathbf{u},\mathbf{v})=\int_\Omega\boldsymbol{\epsilon}^T(\mathbf{v}) D\boldsymbol{\epsilon}(\mathbf{u}) d\Omega + 
+	\int_\Omega\rho\mathbf{v}^T\mathbf{\ddot{u}}d\Omega$ и 
+	$\displaystyle F(\mathbf{v})=\int_\Omega \mathbf{f}.\mathbf{v}d\Omega$.
+	
+	\subsection{Задача на Ritz-Galerkin}
+	Тук вариационната формулировка се превръща в задача на Ritz-Galerkin \cite{larson2013finite}, която търси $L_2$ проекцията на $\mathbf{u} \in V$ - функцията $\mathbf{u_h} \in V_h$.
+	\begin{align*}
+		\text{Търси се } \mathbf{u_h} \in V_h \subset V:\\
+		a(\mathbf{u_h}, \mathbf{v})=F(\mathbf{v}), \forall \mathbf{v} \in V_h,\\
+		\mathbf{u_{h-}}=\boldsymbol{u_{h+}},\mathbf{x} \in \Gamma_L.
+	\end{align*}
+	Тук 
+	\[
+	\mathbf{u_h}(\mathbf{x},t)=
+	\begin{pmatrix}
+		\displaystyle \sum_{j=1}^m\mathbf{q_{1j}}(t)\phi_j(\mathbf{x})\\
+		\displaystyle \sum_{j=1}^m\mathbf{q_{2j}}(t)\phi_j(\mathbf{x})\\
+		\displaystyle \sum_{j=1}^m\mathbf{q_{3j}}(t)\phi_j(\mathbf{x})
+	\end{pmatrix}
+	=
+	\Phi.\mathbf{q} \text{, а пък }
+	a(\mathbf{u_h}, \mathbf{v})=\sum_{K \in \mathcal{K}}a(\mathbf{u_{hK}}, \mathbf{v_K}).
+	\]
+	Съответно рестрикцията на $u_h$ върху някой елемент $K$ от триангулацията изглежда по следния начин:
+	\[
+	\mathbf{u_{hK}}(\mathbf{x},t)=
+	\begin{pmatrix}
+		\displaystyle \sum_{j=K_1}^{K_d}\mathbf{q_{1j}}(t)\phi_j(\mathbf{x})\\
+		\displaystyle \sum_{j=K_1}^{K_d}\mathbf{q_{2j}}(t)\phi_j(\mathbf{x})\\
+		\displaystyle \sum_{j=K_1}^{K_d}\mathbf{q_{3j}}(t)\phi_j(\mathbf{x})
+	\end{pmatrix}
+	=
+	\Phi_K.\mathbf{q_K},
+	\]
+	където $d$ е броят на степените на свобода за един елемент, $K_1 \dots K_d$ са номерата на върховете на $K$, а
+	% \[
+	% \Phi=
+	% \begin{pmatrix}
+		% \phi_1 & 0 & 0 & \phi_2 & 0 & 0 & ... & \phi_m & 0 & 0 \\
+		% 0 & \phi_1 & 0 & 0 & \phi_2 & 0 & ... & 0 & \phi_m & 0 \\
+		% 0 & 0 & \phi_1 & 0 & 0 & \phi_2 & ... & 0 & 0 & \phi_m
+		% \end{pmatrix}
+	% ,\mathbf{q}=
+	% \begin{pmatrix}
+		% q_{11}\\q_{12}\\q_{13}\\q_{21}\\q_{22}\\q_{32}\\ \dots \\ q_{m1}\\q_{m2}\\q_{m2}
+		% \end{pmatrix}
+	% ,\]
+	\[
+	\Phi_K =
+	\begin{pmatrix}
+		\phi_{K_1} & 0 & 0 & \phi_{K_2} & 0 & 0 & ... & \phi_{K_d} & 0 & 0 \\
+		0 & \phi_{K_1} & 0 & 0 & \phi_{K_2} & 0 & ... & 0 & \phi_{K_d} & 0 \\
+		0 & 0 & \phi_{K_1} & 0 & 0 & \phi_{K_2} & ... & 0 & 0 & \phi_{K_d}
+	\end{pmatrix}
+	,\mathbf{q_K}=
+	\begin{pmatrix}
+		q_{{K_1}1}\\q_{{K_1}2}\\q_{{K_1}3}\\q_{{K_2}1}\\q_{{K_2}2}\\q_{{K_2}3}\\ \dots \\ q_{{K_d}1}\\q_{{K_d}2}\\q_{{K_d}2}
+	\end{pmatrix}.
+	\]
+	От друга страна, 
+	\[
+	\boldsymbol{\epsilon}(\mathbf{u})=
+	\begin{pmatrix}
+		\frac{\partial}{\partial x_1} & 0 & 0\\
+		0 & \frac{\partial}{\partial x_2} & 0\\
+		0 & 0 & \frac{\partial}{\partial x_3}\\
+		\frac{\partial}{\partial x_2} & \frac{\partial}{\partial x_1} & 0\\
+		0 & \frac{\partial}{\partial x_3} & \frac{\partial}{\partial x_2}\\
+		\frac{\partial}{\partial x_3} & 0 & \frac{\partial}{\partial x_1}
+	\end{pmatrix}
+	. \mathbf{u_h}=B\mathbf{q}, \text{ }
+	\boldsymbol{\epsilon}(\mathbf{v})=B\mathbf{w},
+	\]
+	където с $\mathbf{w}$ са отбелязани коефициентите на $\mathbf{v}$. Това значи, че
+	$
+	\boldsymbol{\epsilon}(\mathbf{u})|_K=B\mathbf{q_K}, \boldsymbol{\epsilon}(\mathbf{v})|_K=B\mathbf{w_K}
+	$.
+	След заместване в \ref{10} върху елемент $K$ се получава 	$\displaystyle \int_K \mathbf{w_K}^TB^T DB\mathbf{q_K} d\Omega +\int_K \rho \mathbf{w_K}^T\Phi^T \Phi\mathbf{\ddot{q_K}}d\Omega =\int_K \mathbf{w_K}^T\Phi^T.\mathbf{f}d\Omega, \forall \mathbf{w_K}  $. Щом равенството е изпълнено за всяко $\mathbf{w_K}$, то следва че $\displaystyle \int_K B^T DB\mathbf{q_K} d\Omega +\int_K \rho \Phi^T \Phi\mathbf{\ddot{q_K}}d\Omega =\int_K \Phi^T.\mathbf{f}d\Omega$.
+	Записано във векторно-матрична форма (при $\rho=const$ върху всеки елемент) равенството изглежда по следния начин: $\displaystyle M_K^1\mathbf{q_k}+\rho M_K^0\frac{d^2 \mathbf{q_K}}{dt^2}=\mathbf{F_K}$. Блокът с индекси (първият елемент на даден масив е с индекс $1$)
+	\[
+	\begin{pmatrix}
+		(d*(i-1)+1, d*(j-1) + 1) & \dots & (d*(i-1)+1, d*j) \\
+		\dots & \dots & \dots\\
+		(d*i, d*(j-1)+1) & \dots & (d*i, d*j)
+	\end{pmatrix}
+	\]
+	на локалните матрици за елемент $K$ се прибавят към съответната глобална матрица на индекси
+	\[
+	\begin{pmatrix}
+		(d*(K_{i-1})+1, d*(K_{j-1}) + 1) & \dots & (d*(K_{i-1})+1, d*K_j) \\
+		\dots & \dots & \dots\\
+		(d*K_i, d*(K_{j-1})+1) & \dots & (d*K_i, d*K_j)
+	\end{pmatrix}.
+	\]
+	Аналогично се асемблира глобалният вектор. Матриците са с размерност $dm \times dm$, а векторът $dm \times 1$. В крайна сметка се стига до $\displaystyle M^1\mathbf{q}+ M^0\frac{d^2 \mathbf{q}}{dt^2}=\mathbf{F}$ или още
+	\begin{align*}
+		\frac{d \mathbf{q}}{dt}=\mathbf{p},\\
+		M^0\frac{d \mathbf{p}}{dt}=-M^1\mathbf{q}+\mathbf{F}.
+	\end{align*}
+	
+	Важно е да се отбележи, че $\rho$ не участва явно в горните формули, защото е добавено към $M^0$ чрез локалните матрици. Ако беше избрано $\rho=const$, то тогава можеше да бъде изкарано пред $M^0$ като общ множител.
+	
+	Производните по времето се апроксимират с подобрената формула на Ойлер (централна разлика):
+	\begin{align*}
+		\frac{\mathbf{q_{t+1}}-\mathbf{q_t}}{\tau}=\frac{\mathbf{p_{t+1}+\mathbf{p_t}}}{2},\\
+		M^0\frac{\mathbf{p_{t+1}-\mathbf{p_t}}}{\tau}=-M^1\frac{\mathbf{q_{t+1}+\mathbf{q_t}}}{2}+\frac{\mathbf{F_{t+1}+\mathbf{F_t}}}{2}.
+	\end{align*}
+	След опростяване се стига до
+	\begin{align*}
+		\mathbf{q_{t+1}}=\mathbf{q_t} + \frac{\tau}{2}(\mathbf{p_{t+1}+\mathbf{p_t}}),\\
+		M^0\mathbf{p_{t+1}=M^0 \mathbf{p_t}}-\frac{\tau}{2}M^1(\mathbf{q_{t+1}+q_t})+\frac{\tau}{2}(\mathbf{F_{t+1}+\mathbf{F_t}})
+	\end{align*}
+	или
+	\begin{align*}
+		\mathbf{q_{t+1}} - \frac{\tau}{2}\mathbf{p_{t+1}}=\mathbf{q_t} + \frac{\tau}{2}\mathbf{p_t},\\
+		M^0\mathbf{p_{t+1}}+\frac{\tau}{2}M^1\mathbf{q_{t+1}}= M^0 \mathbf{p_t}-\frac{\tau}{2}M^1\mathbf{q_t}+\frac{\tau}{2}(\mathbf{F_{t+1}+\mathbf{F_t}}).
+	\end{align*}
+	Групирането на неизвестните води до
+	\begin{align}
+		\begin{pmatrix}
+			M^0 & \frac{\tau}{2}M^1
+			\\ - \frac{\tau}{2}E & E
+		\end{pmatrix}
+		\begin{pmatrix}
+			\mathbf{p_{t+1}} \\ \mathbf{q_{t+1}}
+		\end{pmatrix}
+		=
+		\begin{pmatrix}
+			\frac{\tau}{2}(\mathbf{F_{t+1}+\mathbf{F_t}})\\
+			\mathcal{O}
+		\end{pmatrix}
+		+
+		\begin{pmatrix}
+			M^0 & -\frac{\tau}{2}M^1\\
+			\frac{\tau}{2} E & E
+		\end{pmatrix}
+		\begin{pmatrix}
+			\mathbf{p_t}\\
+			\mathbf{q_t}
+		\end{pmatrix},
+		\label{eq:14}
+	\end{align}
+	където $E$ е единичната матрица, $\mathbb{O}$ е нулевата матрица, а $\mathcal{O}$ е нулевият вектор. За по-кратко може да се използва записа $\displaystyle LHS \boldsymbol{\xi_{t+1}}=\mathbf{b}+RHS \mathbf{\xi_t}.$ В крайна сметка системата диференциални уравнения беше сведена до решаване на система линейни уравнения на всяка стъпка от времето. Матрицата $LHS$ няма специална структура освен че е разредена. Направени са опити системата да бъде решена с GMRE, но методът се оказва нестабилен за конкретната лява страна. $LHS$ има изключително високо число на обусловеност - от порядъка на $10^{22}$, което най-вероятно е причината итеративният метод да не се справя добре. Поради това системата да се решава с директен метод (LU декомпозиция за разредени матрици).
+	%така че за решаването на системата линейни уравнения можем да ползваме методи, базирани на метода на Крилов(Generalized Minimum Residual, reference: Miscellaneous Titles in Applied Mathemtics, page 20). Всъщност, матрицата $LHS$ има много високо число на обусловеност: от порядъка на $10^22$ и $10^28$, което по-скоро ни задължава да използваме точен метод за решаването на системата? Като бъдеща задача можем да опитаме да преобразуваме $LHS$ така че да стане симетрична и положително определена и да ползваме метод на спрегнатия градиент за решаването й. Ще трябва да се обърне внимание и на числото на обусловеност- дали то ще се повиши драстично от тази промяна?
+	
+	\chapter{Числени експерименти и резултати}
+	Текущата глава представя три числени експеримента. Първият експеримент се провежда с реални входни параметри, вторият сравнява с аналитични решения, а третият прави числена оценка на грешката по метода на Рунге. 
+	
+	Първият експеримент моделира геометрията на реален ледник чрез слой над полупространство. 	Ледник Балкан е използван за изготвяне на модела на средата, в която се симулират вълновите форми в настоящата дипломна работа. Конкретните размери на ледник Балкан са неясни, тъй като за разлика от планинските ледници антарктическите ледници се сливат и нямат ясно изразен ''вододел'' - приема се, че може грубо да бъде описан с постановката за слой над полупространство. За моделирането е избрана среда с ширина $500~m$ и дълбочина $900~m$, като тя се състои от два слоя - лед с дебелина $300~m$ и скална основа под него (земна кора). Избрана е източникова функция, описваща сеизмично събитие, като се симулира едно или две такива събития, които се случват едновременно. Този експеримент служи за проверка на способността на метода да възпроизведе реалистично физическата среда.
+	
+	Вторият експеримент сравнява използвания метод с аналитично решение за конкретни начални условия (без сеизмичен източник), описани в \cite{walters2020analytic}. Той цели да провери точността на имплементирания метод.
+	
+	Третият експеримент е посветен на практическата оценка на грешката чрез съпоставка на резултатите от две симулации, които се различават единствено по големината на мрежовите елементи. По този начин се оценява чувствителността на метода към дискретизацията.
+	
+	Експериментите са реализирани посредством компютърна програма, наречена \texttt{FEM2D} и разработена от дипломанта, която имплементира метода на крайните елементи за уравнение \eqref{eq:14} в двумерна постановка. Имплементацията е проектирана да осигурява гъвкавост в режимите на работа и възможност за лесно надграждане с нови функционалности в бъдеще. \texttt{FEM2D} използва съществуваща библиотека за линейна алгебра, която предоставя структури от данни за матрици, вектори и разредени матрици както и функции за операции с тях.
+	
+	
+	\section{Имплементационни детайли}
+	\subsection{Библиотеки и структури от данни}\label{subsec:libraries}
+	\texttt{FEM2D} е разработена на езика за програмиране \texttt{C++}, избран заради своето бързодействие– ключово предимство при работа със системи с голяма размерност или при множество времеви стъпки. \texttt{FEM2D} използва \texttt{Eigen} \cite{eigenweb} за гъвкавост и лекота на интеграция, докато същевременно е разработена и програмата \texttt{mfem}, която използва библиотеката \texttt{MFEM} \cite{mfem2021} и служи за проверка на създадените от \texttt{Eigen} матрици. И двете програми смятат с двойна точност. Изборът на \texttt{Eigen} се мотивира и от възможността му да работи с много големи разредени матрици, характерни за по-фини мрежи.
+	
+	\subsubsection*{\texttt{Eigen}}
+	За работа с основните структури от данни е използвана библиотеката \texttt{Eigen}. Тя предоставя:
+	\begin{itemize}
+		\item разредени матрици и вектори, 
+		\item структурата \texttt{Triplet}, представляваща наредена тройка $(i,j,x)$, където $i$ и $j$ са индекси, а $x$ е стойността на елемента $(i,j)$. 
+		\item Compressed Sparse Column (CSC) като формат на разредените матрици, който е подходящ за факторизация.
+	\end{itemize}
+	Разредена матрица в \texttt{Eigen} може да се инициализира директно от списък с обекти \texttt{Triplet}, което позволява ефективно създаване на ненулевите елементи. Използвани са и ръчно направени структури от данни, които четат конфигурационните файлове и асемблират глобалните матрици на масата и коравината.
+	
+	\subsubsection*{MFEM}
+	Използвана е също и библиотеката \texttt{MFEM}, която е специализирана за метода на крайните елементи. Тя поддържа:
+	\begin{itemize}
+		\item различни елементи и базисни функции ($V_h$),
+		\item различни видове гранични условия;
+		\item автоматично изграждане на матрици на масата и коравината.
+	\end{itemize}
+	
+	В настоящата работа са използвани двумерни линейни базисни функции върху триъгълни елементи. Матрицата на масата е изградена за векторни функции и умножена по константно $\rho$, докато матрицата на коравината е конструирана чрез \texttt{ElasticityIntegrator}, който използва параметрите на еластичността $\mu$ и $\lambda$.
+	
+	Макар че гранични условия не са зададени директно, е използвана функционалността на \texttt{MFEM} за откриване на гранични възли без контакт с въздуха (т.нар. „фалшива“ граница). Тези възли се нулират на всяка времева стъпка.
+	
+	\subsubsection*{Верификация}
+	Целта на използването на \texttt{MFEM} е двустранна:
+	\begin{enumerate}
+		\item верификация на асемблирането на глобалните матрици, извършено чрез \texttt{Eigen};
+		\item проверка на списъците с гранични възли.
+	\end{enumerate}
+	Тъй като двете библиотеки използват различни вътрешни структури за глобалните матрици, са разработени допълнителни функции за тяхното уеднаквяване и сравнение. Въпросните алгоритми се разглеждат по-подробно в глава \ref{subsec:utils}.
+	
+	\subsection{Решаване на линейната система}
+	
+	На всяка времева стъпка възниква линейна система, която се решава чрез директен метод от библиотеката \texttt{Eigen} – \texttt{SparseLU<SparseMatrix>}, реализиращ LU-декомпозиция за разредени матрици.
+	
+	Преди факторизацията матрицата се трансформира в компресиран разреден стълбов формат чрез метода \texttt{makeCompressed}, така че да бъде синхронизирана с вътрешните структури от данни на \texttt{SparseLU}. След това се следва стандартната тристъпкова процедура на \texttt{Eigen}:
+	\begin{enumerate}
+		\item \texttt{analyzePattern(lhs)} – определя структурата на ненулевите елементи,
+		\item \texttt{factorize(lhs)} – извършва LU-декомпозиция,
+		\item решаване на матрично уравнение с различни десни страни за всяка времева стъпка.
+	\end{enumerate}
+	
+	Тук \texttt{lhs} обозначава матрицата от съкратения запис на \eqref{eq:14}.
+	
+	Избраният подход предлага стабилност и сравнително лесна имплементация, което го прави подходящ за целите на настоящата работа.
+	
+	Един недостатък на избрания метод за решаване на линейни системи е, че при системи с по-големи размерности (по-фина мрежа) се достигат лимитите на наличната апаратура ($800~Mb$ RAM памет), в резултат на което програмата приключва преждевременно. Направени са опити за използване на итеративния метод GMRE \cite{gmre_1986} от библиотеката \texttt{MPI}, но при него се наблюдават проблеми със схождането на итерациите поради високото число на обусловеност на матриците. Поради тази причина на този етап от разработването се използва вградения в \texttt{Eigen} метод \texttt{SparseLU}.
+	
+	
+	\subsection{Асемблиране на глобалните матрици}
+	Важно е да се отбележи, че за $2D$ варианта с триъгълни елементи и линейни базисни функции всяка от съответните компоненти на $F$ и $a$ изглежда по следния начин:
+	\begin{align*}
+		\Phi_K = 
+		\begin{pmatrix}
+			\phi_1 & 0 & \phi_2 & 0 & \phi_3 & 0\\
+			0 & \phi_1 & 0 & \phi_2 & 0 & \phi_3
+		\end{pmatrix},
+		\mathbf{q_K} = 
+		\begin{pmatrix}
+			q_{1,1}\\
+			q_{1,2}\\
+			q_{2,1}\\
+			q_{2,2}\\
+			q_{3,1}\\
+			q_{3,2}\\
+		\end{pmatrix},
+		D=\begin{pmatrix}
+			2\mu+\lambda & \lambda & 0\\
+			\lambda & 2\mu+\lambda & 0\\
+			0 & 0 & \mu
+		\end{pmatrix},\\
+		B=\begin{pmatrix}
+			\frac{\partial}{\partial x} & 0\\
+			0 & \frac{\partial}{\partial z}\\
+			\frac{\partial}{\partial z} & \frac{\partial}{\partial x}
+		\end{pmatrix}.\Phi_K = 
+		\begin{pmatrix}
+			\frac{\partial \phi_1}{\partial x} & 0 & \frac{\partial \phi_2}{\partial x} & 0 & \frac{\partial \phi_3}{\partial x} & 0\\
+			0 & \frac{\partial \phi_1}{\partial z} & 0 & \frac{\partial \phi_2}{\partial z} & 0 & \frac{\partial \phi_3}{\partial z}\\
+			\frac{\partial \phi_1}{\partial z} & \frac{\partial \phi_1}{\partial x} & \frac{\partial \phi_2}{\partial z} & \frac{\partial \phi_2}{\partial x} & 
+			\frac{\partial \phi_3}{\partial z} & \frac{\partial \phi_3}{\partial x} 
+		\end{pmatrix}.
+	\end{align*}
+	Тук с $q_{i,j}$ е означен коефициентът пред $j$-тата компонента ($j \in \{ x,y\}$) в $i$-тата базисна функция на триъгълника $K$ (въпросната $i$-та базисна функция приема стойност $1$ във връх $i$ и $0$ в другите 2 върха).
+	
+	Стандартен подход е да се направи смяна на променливите с цел от произволен триъгълник $K$ да се премине към референтния елемент $E$, който в случая представлява триъгълник с координати $\{\{0,0\}, \{1,0\}, \{0,1\}\}$ (и лице $\frac{1}{2}$) - $J$ е якобианата на тази смяна. Това се прави, за да се избегне пресмятането на $\phi_j$ за всяко $K$ - вместо това интегралите се пресмятат еднократно за базисните функции на $E$, които са означени с $\psi_i$.
+	
+	Разглежда се самата смяна на променливи към референтния елемент $E$ от произволен триъгълник, чиито върхове имат координатите $(x_k,z_k)\rightarrow(0,0);\; (x_m,z_m)\rightarrow(1,0);\; (x_n, z_n)\rightarrow(0,1)$. Дадени координати $(x,z)$ в него могат да се представят като:
+	\begin{align*}
+		\mathbf{x}=
+		\begin{pmatrix}
+			x\\
+			z
+		\end{pmatrix}
+		= \begin{pmatrix}
+			x_k\\
+			z_k
+		\end{pmatrix}
+		+  \begin{pmatrix}
+			x_m-x_k\\
+			z_m-z_k
+		\end{pmatrix}\xi
+		+\begin{pmatrix}
+			x_n-x_k\\
+			z_n-z_k
+		\end{pmatrix}\eta
+		= \begin{pmatrix}
+			x_k\\
+			z_k
+		\end{pmatrix}
+		+  \begin{pmatrix}
+			x_m - x_k & x_n - x_k\\
+			z_m - z_k & z_n - z_k
+		\end{pmatrix}
+		\begin{pmatrix}
+			\xi \\
+			\eta
+		\end{pmatrix}.
+	\end{align*}
+	Диференциалните оператори изглеждат по следния начин:
+	\begin{align*}
+		\frac{\partial}{\partial x} = \frac{\partial}{\partial \xi}\frac{\partial \xi}{\partial x} + \frac{\partial}{\partial \eta}\frac{\partial \eta}{\partial x},\\
+		\frac{\partial}{\partial z} = \frac{\partial}{\partial \xi}\frac{\partial \xi}{\partial z} + \frac{\partial}{\partial \eta}\frac{\partial \eta}{\partial z},\\
+		\frac{\partial \phi_i(x,z)}{\partial x_j} \overset{\mathbf{x}=J\mathbf{\xi}}{=}
+		(\frac{\partial}{\partial \xi}\frac{\partial \xi}{\partial x_j} + \frac{\partial}{\partial \eta}\frac{\partial \eta}{\partial x_j})(\phi_i(x(\xi,\eta),z(\xi,\eta)))=
+		(\frac{\partial}{\partial \xi}\frac{\partial \xi}{\partial x_j} + \frac{\partial}{\partial \eta}\frac{\partial \eta}{\partial x_j})(\psi_i(\xi,\eta)).
+	\end{align*}
+	Горните разсъждения естествено водят към
+	\begin{align*}
+		B=		\begin{pmatrix}
+			\frac{\partial \phi_1}{\partial x} & 0 & \frac{\partial \phi_2}{\partial x} & 0 & \frac{\partial \phi_3}{\partial x} & 0\\
+			0 & \frac{\partial \phi_1}{\partial z} & 0 & \frac{\partial \phi_2}{\partial z} & 0 & \frac{\partial \phi_3}{\partial z}\\
+			\frac{\partial \phi_1}{\partial z} & \frac{\partial \phi_1}{\partial x} & \frac{\partial \phi_2}{\partial z} & \frac{\partial \phi_2}{\partial x} & 
+			\frac{\partial \phi_3}{\partial z} & \frac{\partial \phi_3}{\partial x} 
+		\end{pmatrix}\\
+		\overset{\mathbf{x}=J\mathbf{\xi}}{=} 
+		\begin{pmatrix}
+			\frac{\partial \psi_1}{\partial \xi}\frac{\partial \xi}{\partial x} + \frac{\partial \psi_1}{\partial \eta}\frac{\partial \eta}{\partial x} & 0 & \frac{\partial \psi_2}{\partial \xi}\frac{\partial \xi}{\partial x} + \frac{\partial \psi_2}{\partial \eta}\frac{\partial \eta}{\partial x} & 0 & \frac{\partial \psi_3}{\partial \xi}\frac{\partial \xi}{\partial x} + \frac{\partial \psi_3}{\partial \eta}\frac{\partial \eta}{\partial x} & 0\\
+			0 & \frac{\partial \psi_1}{\partial \xi}\frac{\partial \xi}{\partial z} + \frac{\partial \psi_1}{\partial \eta}\frac{\partial \eta}{\partial z} & 0 & \frac{\partial \psi_2}{\partial \xi}\frac{\partial \xi}{\partial z} + \frac{\partial \psi_2}{\partial \eta}\frac{\partial \eta}{\partial z} & 0 & \frac{\partial \psi_3}{\partial \xi}\frac{\partial \xi}{\partial z} + \frac{\partial \psi_3}{\partial \eta}\frac{\partial \eta}{\partial z}\\
+			\frac{\partial \psi_1}{\partial \xi}\frac{\partial \xi}{\partial z} + \frac{\partial \psi_1}{\partial \eta}\frac{\partial \eta}{\partial z} & \frac{\partial \psi_1}{\partial \xi}\frac{\partial \xi}{\partial x} + \frac{\partial \psi_1}{\partial \eta}\frac{\partial \eta}{\partial x} & \frac{\partial \psi_2}{\partial \xi}\frac{\partial \xi}{\partial z} + \frac{\partial \psi_2}{\partial \eta}\frac{\partial \eta}{\partial z} & \frac{\partial \psi_2}{\partial \xi}\frac{\partial \xi}{\partial x} + \frac{\partial \psi_2}{\partial \eta}\frac{\partial \eta}{\partial x} & 
+			\frac{\partial \psi_3}{\partial \xi}\frac{\partial \xi}{\partial z} + \frac{\partial \psi_3}{\partial \eta}\frac{\partial \eta}{\partial z} &
+			\frac{\partial \psi_3}{\partial \xi}\frac{\partial \xi}{\partial x} + \frac{\partial \psi_3}{\partial \eta}\frac{\partial \eta}{\partial x}		
+		\end{pmatrix}\\\\
+		=  \begin{pmatrix}
+			\frac{\partial \xi}{\partial x} & \frac{\partial \eta}{\partial x} & 0 & 0\\
+			0 & 0 & 	\frac{\partial \xi}{\partial z} & \frac{\partial \eta}{\partial z}\\
+			\frac{\partial \xi}{\partial z} & \frac{\partial \eta}{\partial z} & \frac{\partial \xi}{\partial x} & \frac{\partial \eta}{\partial x}
+		\end{pmatrix}
+		\begin{pmatrix}
+			\frac{\partial \psi_1}{\partial \xi} & 0 &\frac{\partial \psi_2}{\partial \xi} & 0 & \frac{\partial \psi_3}{\partial \xi} & 0\\
+			\frac{\partial \psi_1}{\partial \eta} & 0 &\frac{\partial \psi_2}{\partial \eta} & 0 & \frac{\partial \psi_3}{\partial \eta} & 0\\
+			0 & \frac{\partial \psi_1}{\partial \xi} & 0 &\frac{\partial \psi_2}{\partial \xi} & 0 &\frac{\partial \psi_3}{\partial \xi}\\
+			0 & \frac{\partial \psi_1}{\partial \eta} & 0 &\frac{\partial \psi_2}{\partial \eta} & 0 &\frac{\partial \psi_3}{\partial \eta}
+		\end{pmatrix}.
+	\end{align*}
+	
+	Това означава, че локалните матрици за елемент $K$ ще изглеждат по следния начин:
+	\begin{align*}
+		M^1_K =\int_K B^TDB d\Omega = \int_E \mathcal{P}^T \mathcal{J}^T D \mathcal{J}	\mathcal{P} |detJ|dE=
+		\frac{1}{2}\mathcal{P}^T \mathcal{J}^T D \mathcal{J}	\mathcal{P} |detJ|,\\
+		M^0_K = \int_K \Phi_K^T\Phi_K d\Omega = \int_E \Psi^T\Psi|detJ| dE,
+	\end{align*}
+	където:
+	\begin{align*}
+		\mathcal{J} &= \begin{pmatrix}
+			\frac{\partial \xi}{\partial x} & \frac{\partial \eta}{\partial x} & 0 & 0\\
+			0 & 0 & 	\frac{\partial \xi}{\partial z} & \frac{\partial \eta}{\partial z}\\
+			\frac{\partial \xi}{\partial z} & \frac{\partial \eta}{\partial z} & \frac{\partial \xi}{\partial x} & \frac{\partial \eta}{\partial x}
+		\end{pmatrix},
+		\Psi = \begin{pmatrix}
+			\psi_1 & 0 & \psi_2 & 0 & \psi_3 & 0\\
+			0 & \psi_1 & 0 & \psi_2 & 0 & \psi_3
+		\end{pmatrix}, 
+		\begin{pmatrix}
+			\psi_1 \\ \psi_2 \\ \psi_3
+		\end{pmatrix} = 
+		\begin{pmatrix}
+			1- \xi - \eta\\ \xi \\ \eta
+		\end{pmatrix},\\
+		\mathcal{P} &= 
+		\begin{pmatrix}
+			\frac{\partial \psi_1}{\partial \xi} & 0 &\frac{\partial \psi_2}{\partial \xi} & 0 & \frac{\partial \psi_3}{\partial \xi} & 0\\
+			\frac{\partial \psi_1}{\partial \eta} & 0 &\frac{\partial \psi_2}{\partial \eta} & 0 & \frac{\partial \psi_3}{\partial \eta} & 0\\
+			0 & \frac{\partial \psi_1}{\partial \xi} & 0 &\frac{\partial \psi_2}{\partial \xi} & 0 &\frac{\partial \psi_3}{\partial \xi}\\
+			0 & \frac{\partial \psi_1}{\partial \eta} & 0 &\frac{\partial \psi_2}{\partial \eta} & 0 &\frac{\partial \psi_3}{\partial \eta}
+		\end{pmatrix} = 
+		\begin{pmatrix}
+			-1 & 0 & 1 & 0 & 0 & 0\\
+			-1 & 0 & 0 & 0 & 1 & 0\\
+			0 & -1 & 0 & 1 & 0 & 0\\
+			0 & -1 & 0 & 0 & 0 & 1
+		\end{pmatrix}.
+	\end{align*}
+	
+	Интегруемото в израза за $M_K^1$ е константа, а интеграл върху референтния елемент от константа е константата, умножена по $\frac{1}{2}$. От друга страна, $M^0_K$ може да се изчисли с точност до детерминантата на якобиана:
+	\begin{align}
+		M^0_K=\int_E \begin{pmatrix}
+			\psi_1^2 & 0 & \psi_1\psi_2 & 0 & \psi_1\psi_3 & 0\\
+			0 & \psi_1^2 & 0 &  \psi_1\psi_2 & 0 & \psi_1\psi_3\\
+			\psi_1\psi_2 & 0 & \psi_2^2 & 0 & \psi_2\psi_3 & 0\\
+			0 & \psi_1\psi_2 & 0 & \psi_2^2 & 0 & \psi_2\psi_3\\
+			\psi_1\psi_3 & 0 & \psi_2\psi_3 & 0 & \psi_3^2 & 0\\
+			0 & \psi_1\psi_3 & 0 & \psi_2\psi_3 & 0 & \psi_3^2
+		\end{pmatrix} dE|detJ| = 
+		\begin{pmatrix}
+			\frac{1}{12}& 0 & \frac{1}{24} & 0 & \frac{1}{24} & 0\\
+			0 & \frac{1}{12} & 0 &  \frac{1}{24} & 0 & \frac{1}{24}\\
+			\frac{1}{24} & 0 & \frac{1}{12} & 0 & \frac{1}{24} & 0\\
+			0 & \frac{1}{24} & 0 & \frac{1}{12} & 0 & \frac{1}{24}\\
+			\frac{1}{24} & 0 & \frac{1}{24} & 0 & \frac{1}{12} & 0\\
+			0 & \frac{1}{24} & 0 & \frac{1}{24} & 0 & \frac{1}{12}
+		\end{pmatrix}|detJ|.
+	\end{align}
+	
+	Самият якобиан се пресмята по следния начин: $J=\begin{pmatrix}
+		\frac{\partial{x}}{\partial{\xi}} & \frac{\partial{y}}{\partial{\xi}}\\
+		\frac{\partial{x}}{\partial{\eta}} & \frac{\partial{y}}{\partial{\eta}}
+	\end{pmatrix} = \begin{pmatrix}
+		x_m-x_k & y_m-y_k\\
+		x_n-x_k & y_n-y_k
+	\end{pmatrix}$, тоест
+	$|detJ| = |(x_m-x_k)*(y_n-y_k) - (y_m-y_k)*(x_n-x_k)| = |x_m*y_n + x_k*y_k + y_m*x_k + y_k*x_n - (x_m*y_k + x_k*y_n + y_m*x_n + y_k*x_k)|$.
+	
+	За всяка двойка възли от триъгълника $K$ има блок $2\times2$ в локалната матрица $M_K$ (било то на коравината или на масата) - за възли с номера $i$ и $j$ това ще е блокът с координати $\begin{pmatrix}
+		(2i,2j) & (2i,2j+1)\\
+		(2i+1,2j) & (2i+1,2j+1)
+	\end{pmatrix}$. Този блок се прибавя към глобалната матрица съответно към блока с координати
+	$\begin{pmatrix}
+		(2I,2J) & (2I,2J+1)\\
+		(2I+1,2J) & (2I+1,2J+1)
+	\end{pmatrix}$. Тук $I$ и $J$ са поредните номера на възлите в мрежата на цялата област. Важно е да се отбележи, че индексиранията започват от $0$.
+	
+	Разсъжденията за $b$ са аналогични - когато източникът не зависи от пространството, а само от времето, векторът $\mathbf{F_t}$ може да се запише като 
+	\begin{align*}
+		\mathbf{F_t}=\int_E\Phi^T.\mathbf{f}|detJ|d\Omega=C\int_E\Phi^T\Phi\mathbf{f_{coeff}}|detJ|d\Omega=CM^0\mathbf{f_{coeff}}|detJ|,
+	\end{align*}
+	където $\mathbf{f_{coeff}}$ е разреден вектор (поне в общия случай), който има единици на редовете $2*i, 2*i+1$, където $i$ пробягва индексите на върховете, които участват в елементи, в които има източници, а останалите му елементи са $0$. $C$ е стойността на източника в момент $t$. $f$ се разбива на базисните функции от $V$, защото потенциално преминаване към източник, който не е константен по пространството, би било без промени и в този по-сложен случай намирането на $\mathbf{F_t}$ би било по-оптимално.
+	
+	\subsection{Помощни алгоритми}\label{subsec:utils}
+	За да бъдат коректно сравнени резултатите от двете библиотеки, е необходимо създаването на помощни алгоритми за конвертиране на формати и за уеднаквяване на структурата на матриците.	Както беше споменато в глава \ref{subsec:libraries}, съществуват съществени разлики между структурите на глобалните (и локалните) матрици, генерирани от \texttt{mfem}, и тези, имплементирани във \texttt{FEM2D}. Това води до два основни проблема:
+	
+	\begin{enumerate}
+		\item \textbf{Различно индексиране.}
+		Нека $i,j$ са номера на възли от триангулацията. В структурата, използвана в настоящата дипломна работа, произведенията ${\psi_i}_x{\psi_j}_x, {\psi_i}_x{\psi_j}_y, {\psi_i}_y{\psi_j}_x, {\psi_i}_y{\psi_j}_y$ се поставят съответно в клетките $(2i,2j), (2i,2j+1), (2i+1,2j), (2i+1,2j+1)$. 
+		От друга страна, \texttt{mfem} би разпределила същите произведения в клетките $(i,j), (i,j+n), (i+n,j), (i+n,j+n)$, където $n$ е броят на върховете в триангулацията. Това несъответствие прави директното сравнение на матрици невъзможно.
+		
+		\item \textbf{Натрупване на стойности.}
+		Глобалните матрици в \texttt{Eigen} се асемблират първо чрез вектор от обекти \texttt{Triplet}, който впоследствие се преобразува в \texttt{SparseMatrix}. Ако по време на асемблирането две стойности (идващи от различни елементи) се отнасят за една и съща клетка, те се записват като отделни обекти във вектора и \emph{не се сумират автоматично}. Подобно поведение прави невъзможно директното сравнение между записана във файл матрица от \texttt{mfem}, прочетена чрез \texttt{TripletList}, и генериран от \texttt{Eigen} \texttt{TripletList}.
+	\end{enumerate}
+	
+	За да се преодолеят тези проблеми, е създадена функция \texttt{convertEigenFromToMFEM}. Тя приема като аргументи:
+	\begin{itemize}
+		\item вектор от \texttt{Triplet}-обекти,
+		\item общия брой възли в триангулацията,
+		\item конвертираща функция, която дефинира преобразуването на индекси.
+	\end{itemize}
+	
+	Възможните конвертиращи функции са:
+	\begin{enumerate}[label=\roman*)]
+		\item \texttt{getMFEMSPosition} – при подаден \texttt{Eigen}-индекс и брой възли връща съответния \texttt{MFEM}-индекс;
+		\item \texttt{getEigenPosition} – при подаден \texttt{MFEM}-индекс и брой възли връща съответния \texttt{Eigen}-индекс;
+		\item \texttt{identity} – връща индекса без промяна (използва се като контролен случай).
+	\end{enumerate}
+	
+	Самата функция \texttt{convertEigenFromToMFEM} създава нов вектор от обекти \texttt{Triplet}, в който записва вече конвертираните индекси. След това векторът се сортира така, че ако елементът $t_1$ предхожда $t_2$, то:
+	\begin{itemize}
+		\item редът на $t_2$ е по-голям от реда на $t_1$ или
+		\item редовете съвпадат, но стълбът на $t_2$ е по-голям или
+		\item редът и стълбът съвпадат напълно.
+	\end{itemize}
+	Тази подредба е в съответствие с конвенцията на \texttt{MFEM} за записване във файлове. Различните формати на записване заедно с техните записи в разреден формат за примерна локална матрица са предоставени в \ref{subsec:example_formats}
+	
+	\subsubsection*{Функция за записване}
+	За да се записват матриците (вектори от \texttt{Triplet}-обекти) в същия стил, е разработена функцията \texttt{saveSparseMatrixInFileMFEMStyle}. Тя приема:
+	\begin{itemize}
+		\item име на изходен файл,
+		\item вектор от \texttt{Triplet}-обекти,
+		\item булева стойност, указваща дали се записва матрица или вектор.
+	\end{itemize}
+	
+	Форматът на записа е следният:
+	\begin{itemize}
+		\item всеки ред от файла съдържа \emph{ред, стълб, стойност}, или е празен;
+		\item стойността е \emph{сума от всички стойности}, съответстващи на клетката;
+		\item редовете се сортират първо по индекс на реда, после по индекс на стълба;
+		\item ако редът приключи и се записва матрица, се добавя празен ред.
+	\end{itemize}
+	
+	Алгоритъмът за записване може да се опише накратко така:
+	\begin{enumerate}
+		\item пазят се текущ ред, стълб и натрупана стойност;
+		\item за всеки следващ елемент от сортирания вектор:
+		\begin{itemize}
+			\item ако индексите се променят, записва се натрупаната стойност и се нулира акумулаторът;
+			\item при преминаване към нов ред се добавят празни редове (само при матрици);
+			\item новата стойност се прибавя към акумулатора.
+		\end{itemize}
+	\end{enumerate}
+	По този начин и двата стандарта (\texttt{Eigen} и \texttt{MFEM}) могат да бъдат коректно записани.
+	
+	\subsubsection*{Обобщение и приложение}
+	Функцията \texttt{convertEigenFromToMFEM} позволява:
+	\begin{itemize}
+		\item преобразуване на \texttt{MFEM} матрици в \texttt{Eigen} формат;
+		\item преобразуване на \texttt{Eigen} матрици в \texttt{MFEM} формат и запис в стил на \texttt{MFEM} чрез\\ \texttt{saveSparseMatrixInFileMFEMStyle};
+		\item записване на \texttt{Eigen} матрици в собствен формат чрез \texttt{identity}-конвертора — полезно както за сравнения с ръчно смятани матрици, така и за проверка на имплементацията на другите два конвертора.
+	\end{itemize}
+	
+	\subsubsection*{Верификация}
+	Записаните матрици са сравнени с помощта на програмата \texttt{Notepad++}. Резултатите са следните:
+	\begin{itemize}
+		\item матриците на масата съвпадат напълно;
+		\item матриците на коравината показват малки разлики, около $10^3$ пъти по-малко на брой от ненулевите елементи на матрицата;
+		\item величината на тези разлики е от порядък, близък до машинната грешка (преди умножение с модулите на еластичност).
+	\end{itemize}
+	При симулации не се наблюдават разлики в резултатите при използване на \texttt{Eigen} или \texttt{MFEM} матрици.
+	
+	\subsubsection*{Помощни функции}
+	Освен описаните алгоритми са реализирани и:
+	\begin{itemize}
+		\item функция за изчисляване на $L_2$-норма на матрица,
+		\item функция за намиране на граничните възли,
+		\item функция за концентриране на матрицата на масата,
+		\item функции за четене на параметри от конфигурационен файл.
+	\end{itemize}
+	
+	
+	\section{Режими и настройки на \texttt{FEM2D}}
+	\texttt{FEM2D} чете необходимите входни данни от файлове, които съдържат триангулацията на областта, и конфигурационен файл. 
+	Конфигурационният файл определя режима на работа на програмата и съдържа както общи настройки на симулацията, 
+	така и параметри за дефиниране на източници, изходни данни и физически модели. 
+	Основните настройки са групирани по-долу.
+	
+	\subsubsection*{Общи настройки}
+	\begin{enumerate}[label=\roman*)]
+		\item \texttt{useMfemMatrices} – флаг: ако е 0, се използват генерираните матрици на масата и коравината; ако е 1, се четат предварително генерирани от \texttt{mfem} матрици.
+		\item \texttt{debug} – флаг с различни режими:
+		\begin{itemize}
+			\item 0 – решава системата за всеки момент и записва резултатите във файлове;
+			\item 1 в комбинация с \texttt{useMfemMatrices=0} – записва генерираните матрици във файл;
+			\item 1 в комбинация с \texttt{useMfemMatrices=1} – чете матрици от \texttt{MFEM}, конвертира ги и ги записва обратно във файл.
+		\end{itemize}
+		\item \texttt{mcm} – максимално лице на елемент в квадратни метри от предварително генерирана мрежа (идентификатор на изходните файлове).
+		\item \texttt{tau} – стъпка по времето в секунди, зависеща от мрежата.
+		\item \texttt{Tmax} – финално време на симулацията в секунди.
+	\end{enumerate}
+	
+	\subsubsection*{Източници}
+	\begin{enumerate}[resume, label=\roman*)]
+		\item \texttt{sourceElement} – индекси на елементи, маркирани като източници (само възлите на тези елементи са ненулеви във вектора на източника).
+	\end{enumerate}
+	
+	\subsubsection*{Изходни данни}
+	\begin{enumerate}[resume, label=\roman*)]
+		\item \texttt{seismographIndices} – индекси на възли, които действат като „сеизмографи“. Стойностите на отместването и скоростта се записват във файл на всяка времева стъпка.
+		\item \texttt{allNodes} – ако е $>0$, записва в отделен файл цялото решение на \texttt{allNodes}+1 еднакво отдалечени стъпки от времето (започвайки от $t=0$).
+	\end{enumerate}
+	
+	\subsubsection*{Физически модели и геометрия}
+	\begin{enumerate}[resume, label=\roman*)]
+		\item \texttt{cavityIndices} – индекси на елементи, участващи в пукнатини (разделени със запетайка). При празен низ се счита, че няма пукнатини.
+		\item \texttt{modelProblem} – определя режима на работа.
+	\end{enumerate}
+	
+	\begin{center}
+		\begin{tabular}{|c|p{10cm}|}
+			\hline
+			\textbf{Режим} & \textbf{Описание} \\
+			\hline
+			Halfspace & Цялата област е хомогенна с параметри $\rho,\mu,\lambda$ за скала. \\
+			\hline
+			Layered & Долната част (в.ж. \texttt{depths}) ползва параметри за скала, горната – за лед (плътността на леда зависи от дълбочината). \\
+			\hline
+			Elastic & Използва се при пукнатини, които са запълнени с вода. Решава еластичното вълново уравнение в тях, като задава параметри на вода. \\
+			\hline
+			Analytical & Хомогенна среда, ненулеви начални условия и нулев източник (за сравнение с аналитични решения). Очаква всички дължини в конфигурационния файл да са в километри (единствено изключение).\\
+			\hline
+		\end{tabular}
+	\end{center}
+	
+	\begin{enumerate}[resume, label=\roman*)]
+		\item \texttt{cavityFilling} – среда в пукнатини; използва се в комбинация с \texttt{modelProblem=Elastic}:
+		\begin{itemize}
+			\item \texttt{a} – въздух (пукнатините се третират като граница),
+			\item \texttt{w} – вода (решава се с $\mu=0\,Pa$).
+		\end{itemize}
+		\item \texttt{depths} – три числа в метри (долна граница, граница между среди, горна граница). 
+		Ако второто число е извън интервала, областта е хомогенна.
+		\item \texttt{left}, \texttt{right} – координати на лява и дясна граница на областта в метри.
+	\end{enumerate}
+	Важно уточнение е, че режим Analytical използва параметри, които са в мерни единици на база километър, а не метър, например $1.75\,GPa = 1.75*10^9\,kg\,m^{-1}\,s^{-2}=1.75*10^{12}\,kg\,km^{-1}\,s^{-2}$. Също така режим \texttt{Analytical} очаква всички дължини да се подават в километри и в конфигурационния файл.
+	Примери за конфигурационни файлове са дадени в Приложение \ref{app:configs}.
+	\section{Използвани параметри и входни данни}
+	
+	Правдоподобното моделиране на реална среда налага избор на стойности за физични параметри, които да попадат в реалистични граници. Настоящата подглава разглежда избора на стойности за плътността и модулите на еластичност на средата. Не се отчита температурната зависимост на параметрите, което би могло да окаже влияние при реални ледници. Приема се и че скалата е хомогенна и изотропна.
+	
+	\subsection*{Плътност}
+	Плътността на леда в реални условия не е константа. Тя варира между $300$ и $900 \,\mathrm{kg~m^{-3}}$ в зависимост от дълбочината на съответния слой лед. За разлика от това плътността на скалата зависи предимно от вида на скалата, като стойностите обикновено са в интервала $1500$–$2700 \,\mathrm{kg~m^{-3}}$ \cite{lin2015rockdensity}.
+	
+	В \cite{ice_quadrature_decrease_with_depth} е изследвана плътността на ледници от Антарктида и е установено, че тя нараства пропорционално на квадратния корен от дълбочината. При $h=0$ тя е около $300 \,\mathrm{kg~m^{-3}}$, а при $h=120\,\mathrm{m}$ достига $900 \,\mathrm{kg~m^{-3}}$. Това може да се опише с формулата:
+	\[
+	\rho(-h) = 300 + \sqrt{3000h}.
+	\]
+	
+	На практика обаче тази зависимост води до нестабилност в структурата на матрицата на масата, което прави невъзможно решаването на матричното уравнение с вградените функции. Затова в настоящата работа е прието линейно нарастване на плътността с дълбочината:
+	\[
+	\rho(-h) = 300 + 2h.
+	\]
+	
+	\subsection*{Модули на еластичност}
+	Зависимости между модулите на еластичност за различни видове скали са представени в \cite{lamme_params} и илюстрирани на фигура \ref{fig:lamme_params}. Ориентировъчни стойности за лед се дават в \cite{lamme_params_ice} и \cite{ice_physics_1974}, където се посочва, че стандартните стойности за поликристален лед при $-5^\circ C$ са $9.0 \,\mathrm{GPa}$ за модула на Юнг и $0.33$ за коефициента на Поасон.
+	
+	В настоящата работа са използвани стойности $E = 9 \cdot 10^9 \,\mathrm{Pa}$ и $\nu = \tfrac{1}{3}$, което води до изчислени параметри Ламé:
+	\[
+	\lambda = \frac{27}{4} \,\mathrm{GPa}, 
+	\qquad
+	\mu = \frac{27}{8} \,\mathrm{GPa}.
+	\]	
+	
+	За водата са използвани $\lambda = 1\,GPa$, $\mu = 0\,Pa, \rho = 0.997\,kg\,m^{-3}$
+	
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=1\textwidth]{lambda-mu-limestone.png}
+		\caption{\label{fig:frog}Стойности на $\lambda$ и $\mu$ за различни скали}
+		\label{fig:lamme_params}
+	\end{figure}
+	\FloatBarrier
+	
+	\section{Допълнителни процедури и генериране на мрежата}
+	Използвани са редица помощни функции, свързани с триангулирането на областта, задаването на стойности на конфигурационния файл и визуализирането на резултатите от \texttt{FEM2D}.
+	
+	За генериране на мрежата и визуализация на резултатите е използван вграденият пакет за крайни елементи на \texttt{Wolfram Mathematica} \cite{mathematica12}. Причината за този избор е възможността бързо да се създават качествени триангулации и удобството на вградените визуализационни функции.
+	
+	Триангулирането на областта се извършва чрез функцията \texttt{ToElementMesh}, която има две ключови опции:
+	\begin{itemize}
+		\item \texttt{MeshQualityGoal} – контролира колко ''хубава'' е мрежата, т.е. доколко триъгълниците са близки до равностранни (стойности между $0$ и $1$; използвано е $0.9$, защото по-малки стойности водят до проблеми с интерполацията).
+		\item \texttt{MaxCellMeasure} – задава максималното лице на триъгълен елемент; стойността ѝ варира според вида експеримент. Мрежи с различни \texttt{MaxCellMeasure} стойности са сравнени в \ref{subsec:practical_error}
+	\end{itemize}
+	
+	Мрежата може да бъде визуализирана чрез \texttt{Show[em["Wireframe"]]}. Освен това:
+	\begin{itemize}
+		\item възлите се представят като масиви от две стойности – $x$- и $z$-координата;
+		\item елементите са масиви с дължина $3$, съдържащи индексите на върховете от вектора с възли.
+	\end{itemize}
+	Примерни триангулации са представени на фигура \ref{fig:mesh_comparison}. 
+	
+	Разработени са редица помощни функции, които:
+	\begin{itemize}
+		\item намират най-дългото и най-късото ребро в мрежата,
+		\item определят индексите на елементите, участващи в даден регион (например пукнатини),
+		\item локализират възел в близост до зададени координати (с допустима покоординатна разлика) – използва се за \texttt{seismographPoints},
+		\item намират елемент, съдържащ дадена точка – използва се за \texttt{sourceElement},
+		\item записват елементите и възлите в \texttt{CSV} файлове, които се четат от \texttt{FEM2D}. Освен това записват \texttt{sourceElement}, \texttt{sourceEpicentre}, \texttt{sourceRadius}, \texttt{seismoraphIndices}, \texttt{mcm}, \texttt{tau}, \texttt{depths}, \texttt{left}, \texttt{right}, \texttt{cavityIndices} в конфигурационния файл.
+	\end{itemize}
+	
+	Допълнителна процедура е $3D$ изобразяването на квадрата на нормата на отместването върху цялата област. На всеки възел се съпоставя стойност на нормата, която се интерполира чрез вградената функция \texttt{Interpolation}. След това чрез \texttt{Manipulate} и \texttt{Plot3D} се визуализира развитието на вълновото поле. Тази процедура предоставя интуиция за поведението на решението и улеснява проверката на коректността на имплементацията.
+	
+	За \ref{subsec:practical_error} е създадена процедура, която при подадена мрежа връща мрежа, получена чрез раздробяване на подадената мрежа. По време на раздробяването всеки елемент се разделя на 4 равнолицеви подобни на него елемента.
+	
+	\section{Проведени експерименти}
+     Експериментите са организирани в три основни групи, за да бъде анализът систематичен. Всяка от групите изпълнява специфична изследователска цел. И трите вида експерименти решават системата \ref{eq:14} на всяка стъпка от времето.
+	
+	Първият тип симулации са извършени с нулеви начални условия и ненулева функция източник. Те се използват за създаване на синтетични сеизмограми. В този контекст едно сеизмично събитие е представено чрез две компоненти – хоризонтална (по оста $x$) и вертикална (по оста $z$) – вместо чрез стандартния тримерен запис - $N-S,E-W$ и $Z$. За моделирането на източника е използвана функция на Ricker \cite{wang2015frequencies}. Този тип симулации предоставя база за сравнение с реални записи от сеизмичната станция.
+	
+	Вторият тип симулации са извършени без източник, но с ненулеви начални отмествания и нулеви начални скорости. Те са предназначени за сравнение с аналитични решения. По този начин вторият тип експерименти служи за верификация на коректността на числената имплементация чрез съпоставка с теоретично изведени резултати.
+	
+	Третият тип симулации са насочени към практическа оценка на грешката. Те сравняват резултатите от няколко вложени една в друга мрежи с аналитично решение от \cite{walters2020analytic}. 
+	Намаляването на грешката между две мрежи се сравнява с намаляването на максималните дължини на ребрата в тях, тъй като те са показател за това колко ситна е мрежата. Така се дава някакво приближение за реда на сходимост на метода.
+	
+	
+	\subsection{Числени симулации, наподобяващи ледник върху скала}
+	Средата, използвана за първата симулация, е конструирана по следния начин:
+	За горните 300 метра са използвани параметри на лед, като плътността на леда се мени линейно между 900 и 300 $kg/m^3$ в зависимост от 
+	дълбочината \cite{ice_quadrature_decrease_with_depth}, $\lambda=\frac{27}{4}\,GPa, \mu=\frac{27}{8}\,GPa$ \cite{ice_physics_1974}, \cite{lamme_params_ice}, а за долните 600 метра параметри на скала - $\lambda=0.5\,GPa, \mu=0.25\,GPa, \rho=2000\,kgm^{-3}$  \cite{lamme_params}, \cite{lin2015rockdensity}. 
+	Реалните ледници имат пукнатини, които могат да са празни или пълни с вода.
+	В симулацията пукнатини могат да се конфигурират да са различни по големина и местоположение и могат да са пълни с вода, за която се ползват параметри $\lambda=1~GPa, \mu=0~ Pa, \rho=0.997~ kgm^{-3}$, 
+	или празни, при което се приема, че са част от границата. Като допълнителна конфигурация се подават ръчно елементи, в които има източник - силата на всички източници 
+	засега е еднаква и всички започват да действат от момент $0$, но симулации, в които това не е така, биха представлявали интерес в бъдеще.
+	
+	\subsection{Избор на функцията източник}\label{source}
+
+	Особено важна роля за развитието на симулацията играе източникът $f$. Първоначално е използвана функция, която е константна във времето. В пространството функцията е $0$ навсякъде 
+	освен в посочения елемент на източник. Получените резултати при този източник (Фиг. \ref{displacement_500x950_25_noPML}) се различават значително от реалистични сеизмограми. 
+	Това се дължи на факта, че този тип функция е по-подходяща при моделиране на експлозии \cite{aki_richards2002_quantitative}, тъй като единствено вкарва енергия 
+	в системата, без да извлича от нея. Сеизмичните събития обаче не се характеризират с такъв механизъм и поради тази причина е по-реалистично те да бъдат моделирани с друга функция.
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.7\linewidth]{displacement_500x950_25_noPML.png}
+		\caption{Резултати при източник, който е константен във времето.}\label{displacement_500x950_25_noPML}
+	\end{figure}
+	
+	Вместо това се използва така наречената функция на Ricker или вълна на Ricker, дефинирана в \cite{wang2015frequencies}, която представлява втората производна на плътността на 
+	Гаусовото разпределение (умножена по константа). Тя е стандартна за моделирането на сеизмични източници \cite{Komatitsch2002}. Версията, която се ползва тук, има формата 
+	$r(t)=(1-2a^2(t))e^{a^2(t)}$, където $a(t)=\pi*f_0*(t-\frac{1}{f_0})$. Тук $f_0$ е доминиращата честота, разделена на $2$. Действително, прилагайки трансформация на 
+	Фурие върху функцията на Рикер, се получава $R(s)=\frac{s^2\sqrt{\pi}}{2f_0^3}e^{-\frac{s^2}{4f_0^2}}$. Следователно $\frac{dR}{ds}=\sqrt{\frac{\pi}{2f_0^3}}(2s-\frac{2s^3}{4f_0^2})e^{-\frac{s^2}{4f_0^2}}=0$ 
+	има корени в $-2f_0$, $0$ и $2f_0$, като $0$ е локален минимум, а $-2f_0$ и $2f_0$ са локални максимуми, тоест $2f_0$ е доминиращата честота (Фиг. \ref{pic:ricker_transformed}). 
+	Това означава, че най-силен ефект оказва функцията при $t=\frac{i}{2f_0}, i=\pm 0\dots,\lfloor 2f_0 \rfloor$. От графиката на функцията \ref{pic:ricker_offset} се 
+	вижда, че най-значими са моментите в околност на точките $0, ~ \frac{1}{2f_0}$. Именно затова като източник е използвана функцията в момент $t-\frac{1}{f_0}$, с което началото на доминиращата честота се 
+	премества в $\frac{1}{f_0}$ и се гарантира, че само малка част от енергията няма да бъде предадена от източника.
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.7\linewidth]{fourier_transform_ricker.png}
+		\caption{Трансформацията на Фурие за вълна на Рикер с $f_0=8$. Локалните максимуми са в -16 и 16}\label{pic:ricker_transformed}
+	\end{figure}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.7\linewidth]{ricker.png}
+		\caption{Рикер функция с $f_0=8$. Един източник е ненулев единствено в точката, най-близка до зададените координати, като стойността му във време t е $r(t)$.}\label{pic:ricker_offset}
+	\end{figure}
+	
+	Тъй като по време на проучването на литературата не бяха намерени статии, които описват характеристиките на източниците при ледотресения, е извършена тестова симулация, която имитира условията от първия експеримент на \cite{Komatitsch2002}. Тя цели да даде първоначален ориентир за доминираща честота на вълната на Ricker при симулациите върху обем, наподобяващ ледник Балкан. Въпросната тестова симулация е именно симулацията на слой над полупространство, като целият обем 
+	е $134~km \times 134~km \times 60~km$ с източник на дълбочина $25.05~km$, дебелина на слоя $3~km$, доминираща честота $0.4~Hz$, стъпка по времето $0.0065~s$, $6000$ стъпки. 
+	Има два синтетични сеизмографа с координати съответно $\{67,2.39,0\}$ и $\{67,31.11,0\}$. Очевидно \texttt{FEM2D} 
+	не може да пресъздаде сеизмограмите върху тези координати поради факта, че може да извършва изчисления само за двуизмерни области. Именно затова са му зададени сеизмографи в $\{2.39,0\}$ и $\{31.11,0\}$. Използваната мрежа има $25440$ елемента, $12996$ възела, максимално ребро $1.47902~km$, минимално ребро $0.621481~km$ и максимално лице на елемент $0.5~km^2$. Конкретните характеристики на средите не са споменати в статията, затова са използвани стандартни стойности: за скала $\rho=2000~gcm^{-3},\lambda=50~GPa,\mu=25~GPa$, за мохо $\rho=3000~gcm^{-3},\lambda=76~GPa,\mu=66~GPa$(подобни на тези от \cite{Dziewonski1981}). Генерираните сеизмограми и тези от статията са изложени на фигура \ref{fig:comparisonSeimogram1} и \ref{fig:comparisonSeimogram2}
+	
+	\begin{figure}[htbp]
+		\centering
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_mine1.pdf}
+			\caption{Сеизмограма в $x=1$ от \texttt{FEM2D} - отместване по $x$}
+			\label{fig:mine1}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_ref2.png}
+			\caption{Сеизмограма в $x=2.39$ от статията. Радиална компонента на отместването.}
+			\label{fig:ref2}
+		\end{subfigure}
+		\vspace{0.5cm} % vertical space between rows
+		
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_mine2.pdf}
+			\caption{Сеизмограма в $x=1$ от \texttt{FEM2D} - отместване по $z$}
+			\label{fig:mine2}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_ref1.png}
+			\caption{Сеизмограма в $x=2.39$ от статията. Вертикална компонента на отместването.}
+			\label{fig:ref1}
+		\end{subfigure}
+		
+		\caption{Симулирани сеизмограми от \texttt{FEM2D}(отляво) в сравнение със сеизмограмите от статията(отдясно). Обръща се внимание, че радиалната компонента изобразява отместването в направлението източник-сеизмограф.}
+		\label{fig:comparisonSeimogram1}
+	\end{figure}
+	
+	\begin{figure}[htbp]
+		\centering
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_mine3.pdf}
+			\caption{Сеизмограма в $x=30$ от \texttt{FEM2D} - отместване по $x$}
+			\label{fig:mine3}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_ref4.png}
+			\caption{Сеизмограма в $x=31.11$ от статията. Радиална компонента на отместването.}
+			\label{fig:ref4}
+		\end{subfigure}
+		\vspace{0.5cm} % vertical space between rows
+		
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_mine4.pdf}
+			\caption{Сеизмограма в $x=30$ от \texttt{FEM2D} - отместване по $z$}
+			\label{fig:mine4}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{seismo_ref3.png}
+			\caption{Сеизмограма в $x=31.11$ от статията. Вертикална компонента на отместването.}
+			\label{fig:ref3}
+		\end{subfigure}
+		
+		\caption{Симулирани сеизмограми от \texttt{FEM2D}(отляво) в сравнение със сеизмограмите от статията(отдясно). Обръща се внимание, че радиалната компонента изобразява отместването в направлението източник-сеизмограф.}
+		\label{fig:comparisonSeimogram2}
+	\end{figure}
+	
+	Сеизмограмите, генерирани от \texttt{FEM2D}, значително се различават от тези от статията. Това се дължи на следните факти:
+	\begin{enumerate}[label=\roman*)]
+		\item Едната симулация е в $2D$ област, а другата - в $3D$ област. Освен това поради разлика в раздробяването на мрежите сеизмограмите са на различни места в двата случая.
+		\item Работи се с различни коефициенти на средите, което би могло да доведе до различни форми и по-бавни скорости на сеизмичните вълни.
+		\item Статията ползва радиални и вертикални компоненти, което по-ясно показва P и S-вълните. \texttt{FEM2D} все още няма изградена стъпка за подобно преобразуване.
+	\end{enumerate}
+	
+	Въпреки това, се вижда, че структурно сеизмограмите са подобни, което води до заключението, че число от порядъка на $0.4~ Hz$ би бил разумен първоначален избор за доминираща честота в симулациите.
+	
+	Синтетичните сеизмограми, получени с $0.4~Hz$, обаче не приличат на реалните сеизмограми, които са получени до ледник Балкан - амплитудата, формата на вълната и времето не са реалистични. Затова са създадени допълнителни сеизмограми при еднакви условия за честоти, вариращи между $2~Hz$ и $16~Hz$, показани на фигура \ref{fig:different_seismos}.
+	
+	\begin{figure}[!h]
+		\centering
+		% First row
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo0.4Hz.pdf}
+			\caption{$f_0=0.2~Hz$, $T_{max}=20~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo2Hz.pdf}
+			\caption{$f_0=1~Hz$, $T_{max}=4~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo4Hz.pdf}
+			\caption{$f_0=2~Hz$, $T_{max}=4~s$}
+		\end{subfigure}
+		
+		% Second row
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo6Hz.pdf}
+			\caption{$f_0=3~Hz$, $T_{max}=4~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo8Hz.pdf}
+			\caption{$f_0=4~Hz$, $T_{max}=4~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo10Hz.pdf}
+			\caption{$f_0=5~Hz$, $T_{max}=4~s$}
+		\end{subfigure}
+		
+		% Third row
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo12Hz.pdf}
+			\caption{$f_0=6~Hz$, $T_{max}=4~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo14Hz.pdf}
+			\caption{$f_0=7~Hz$, $T_{max}=4~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo16Hz.pdf}
+			\caption{$f_0=8~Hz$, $T_{max}=2~s$}
+		\end{subfigure}
+		
+		\caption{Сеизмограми при различни доминиращи честоти. Тук $f_0$ е доминиращата честота, разделена на $2$, а $T_{max}$ е финалното време на симулацията.}
+		\label{fig:different_seismos}
+	\end{figure}
+		
+		
+	Най-близка до реалните сеизмограми (Фиг. \ref{fig:real_seismos}) изглежда тази, която е с $f_0=5~Hz$, тоест доминираща честота $10~Hz$. Това, комбинирано с факта, че не са намерени конкретни честоти за източник в ледотресения в литературата, е причината в крайна сметка да се използва източник с доминираща честота $10~Hz$.
+	
+	\begin{figure}[!h]\centering
+		\begin{subfigure}[b]{0.9\textwidth}
+			\includegraphics[width=0.49\textwidth]{real_seismogram1.png}
+			\hfill
+			\includegraphics[width=0.49\textwidth]{real_seismogram3.png}
+		\end{subfigure}
+		\caption{Реални сеизмограми от сеизмичната станция LIVV.}
+		\label{fig:real_seismos}	
+	\end{figure}
+	
+	\subsection{Размер на мрежата и големина на стъпката по времето}
+	
+	В литературата \cite{DeBasabe2007} е добра практика подсигуряването на поне $10$ възела 
+	за минимална дължина на вълната - $\lambda_{min} = \frac{v_{min}}{f_{max}}$. Тук $v_{min}$ е минималната скорост в симулацията, а $f_{max}$ представлява максималната честота, която е значима за симулацията.За конкретните експерименти може да се 
+	приеме, че $f_{max}=25$ (подобно на \cite{Komatitsch2002}). Скоростите на двата типа вълни се дават чрез формулите $v_S=\sqrt{\frac{\mu}{\rho}}$ и $v_P=\sqrt{\frac{\lambda + 2\mu}{\rho}}$. 
+	За $\lambda_{min}$ се използва най-малката от тези скорости в която и да е среда. Скоростите се изчисляват както следва
+	\begin{align*}
+		v_{S_{rock}}=\sqrt{\frac{\mu}{\rho}}=\sqrt{\frac{0.25*10^{11}}{2000}}=\sqrt{\frac{10^8}{8}}=\sqrt{2}~10^3\frac{5}{2}=3535.53~ms^{-1},\\
+		v_{S_{ice}}=\sqrt{\frac{\mu}{\rho}}=\sqrt{\frac{27*10^{9}}{8*900}}=\sqrt{\frac{3*10^7}{8}}=\sqrt{\frac{15}{4}}~10^3=1936.49~ms^{-1},\\
+		v_{P_{rock}}=\sqrt{\frac{\lambda + 2\mu}{\rho}}=\sqrt{\frac{(0.5+2*0.25)*10^{11}}{2000}}=\sqrt{\frac{10^8}{2}}=\sqrt{2}~10^4\frac{1}{2}\approx 7071~ms^{-1},\\
+		v_{P_{ice}}=\sqrt{\frac{\lambda + 2\mu}{\rho}}=\sqrt{\frac{54+2*27*10^{9}}{8*900}}=\sqrt{\frac{3*10^7}{2}}=\sqrt{15}~10^3\approx 3873
+		~ms^{-1}.
+	\end{align*}
+	Минималната от тези скорости е $v_{S_{ice}}$ и следователно $\lambda_{min}\approx \frac{v_{S_{ice}}}{f_{max}}>\frac{1925}{25}=77$ и мрежата трябва да бъде построена по такъв, начин, че за $77$ метра да има поне 10 ребра. Това значи средната дължина на ребрата да е $7.7$ метра.
+	
+	Изследвани са няколко мрежи:
+	\begin{itemize}
+		\item Мрежа $mesh_{250}$ с максимално лице на елемент $250~m^2$, $2858$ елемента, $1519$ възела, максимална дължина на ребро $32~m$, минимална дължина на ребро $14~m$.
+		\item Мрежа $mesh_{25}$ с максимално лице на елемент $25~m^2$, $28362$ елемента, $14462$ възела, максимална дължина на ребро $10.19~m$, минимална дължина на ребро $4.4~m$.
+		\item Мрежа $mesh_{14}$ с максимално лице на елемент $14~m^2$, $50624$ елемента, $25688$ възела, максимална дължина на ребро $7.66~m$, минимална дължина на ребро $3.28~m$.
+	\end{itemize}
+	
+	За всяка мрежа е направена симулация. Останалите параметри на симулациите са идентични и целта е да се определи дали има деградация на получените резултати (Фиг. \ref{fig:different_mcms}) с увеличаване на максималното допустимо лице на елемент съответно на максималното ребро.
+	
+		\begin{figure}[!h]
+		\centering
+
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo250mcm.pdf}
+			\caption{Максимално лице на елемент $250~m^2$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo25mcm.pdf}
+			\caption{Максимално лице на елемент $25~m^2$}
+		\end{subfigure}
+		\begin{subfigure}{0.3\linewidth}
+			\includegraphics[width=\linewidth]{seismo14mcm.pdf}
+			\caption{Максимално лице на елемент $14~m^2$}
+		\end{subfigure}
+		
+		\caption{Сеизмограми за мрежи с различни ограничения за най-голям елемент.}
+		\label{fig:different_mcms}
+	\end{figure}
+	
+	Може да се види, че сеизмограмите, получени от $mesh_{25}$ и $mesh_{14}$, носят значително повече информация от тази, получена от $mesh_{250}$, а помежду си нямат съществена разлика. От друга страна, мрежата $mesh_{25}$ има два пъти по-малко възли от $mesh_{14}$ и съответно системата е много по-малка и се решава по-бързо. Единственият проблем е, че не всички ребра на $mesh_{25}$ са по-малки от $7.7~m$. Средната дължина на ребро е $6.37$, но това не гарантира много и е направена по-задълбочена проверка.
+	
+	 Хистограмите от фигура \ref{fig:histograms} показват, че дължините на ребрата не са равномерно разпределени. Дължините, по-малки от $5~m$, са $10\%$, тези между $5~m$ и $6~m$ са $35\%$, между $6~m$ и $7.7~m$ са $38\%$, между $7.7~m$ и $9~m$ са $14\%$, а тези, по-големи от $9~m$, са едва $3\%$. Очакването и дисперсията на фината хистограма са използвани, за да се генерира нормално разпределение. Тъй като дължините не са нормално разпределени, а по-скоро по-ниските стойности са с по-висока тежест, то изчислената вероятност сумата на $10$ извадки на нормалното разпределение да е по-малка от $77$ е долна граница за реалния случай. Сумата на $10$ извадки от нормално разпределение с $\mu=6.37$ и $\sigma=1.22$ се заменя от 1 извадка от $N(63.7,\sqrt{10}*1.22)$. Вероятността извадка от това нормално разпределение да е по-малка от 77 е $0.999716$. Всичко това показва, че в крайна сметка използването на $mcm_{25}$ е съвсем допустимо.
+	
+	\begin{figure}[!h]
+		\centering
+		
+		\begin{subfigure}{\textwidth}
+			\includegraphics[width=0.32\textwidth]{sparse_histogram.pdf}
+			\hfill
+			\includegraphics[width=0.32\textwidth]{fine_histogram.pdf}
+			\hfill
+			\includegraphics[width=0.32\textwidth]{normal_distr.pdf}
+		\end{subfigure}
+		
+		\caption{Ляво и среда - хистограми за дължините на ребрата на $mesh_{25}$. Дясно - нормално разпределение със същите очакване и дисперсия като дължините на $mesh_{25}$}
+		\label{fig:histograms}
+	\end{figure}
+	
+	Относно стъпката по времето $\tau$ според \cite{moczo2002accuracy} тя трябва да изпълнява $\tau < \frac{\Delta x}{\sqrt{3*(v_P^2+v_S^2)}}$. Минималната стойност на $\frac{\Delta x}{\sqrt{3*(v_P^2+v_S^2)}}$ се достига при $\Delta x = 4.4 ~m$, $v_S=3535.53\\
+	ms^{-1}$, $v_P=7071~ms{-1}$. Тогава се получава $\tau<0.00032~s$. 
+	На фигура \ref{fig:different_tau} са изобразени сеизмограми за $\tau=0.01,0.001,0.0004,0.00025~s$
+	
+	\begin{figure}[!h]
+		\centering
+		% First row
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{seismo_tau0.01.pdf}
+			\caption{$\tau=0.01~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{seismo_tau0.001.pdf}
+			\caption{$\tau=0.001~s$}
+		\end{subfigure}
+		
+		% Second row
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{seismo_tau0.0004.pdf}
+			\caption{$\tau=0.0004~s$}
+		\end{subfigure}
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{seismo_tau0.00025.pdf}
+			\caption{$\tau=0.00025~s$}
+		\end{subfigure}
+		
+		\caption{Сеизмограми, генерирани с различни стъпки по времето.}
+		\label{fig:different_tau}
+	\end{figure}
+	
+	Вижда се разлика между всички сеизмограми, затова в крайна сметка е избрано $\tau=0.00025~s$. Тъй като данните в сеизмична станция LIVV до БАБ се записват с честота на цифроване $100$ отчета в секунда, от генерираните числа за всяка стъпка по времето се взима една стойност от $40$, за да пресъздаде същата честота на записване.
+	
+	\subsection{Извършени симулации	}
+	Върху региона, моделиращ ледник Балкан, са направени няколко симулации на единични събития: на повърхността на леда (повърхностно ледотресение), в средата на леда 
+	(средно дълбоко ледотресение), на границата лед-скала (дълбоко ледотресение) и близо до долната граница на изчислителния регион скала 
+	(земетресение, чиито вълни преминават през ледник преди да достигнат до сеизмична станция). Симулациите са без пукнатини и с една пукнатина на повърхността на моделния ледник, 
+	която може да е пълна с вода или въздух. Върху същия регион са симулирани и две събития едновременно, като този път пукнатините са $2$ - отново пълни с вода или празни. 
+	Илюстрация на областта и различните източници върху нея е предоставена във фигура \ref{pic:region_with_sources}, а сеизмограми са представени в \ref{fig:example_events1} и \ref{fig:example_events2}
+	
+	\begin{figure}[!h]
+		\centering
+		\includegraphics[width=0.9\textwidth]{domain_with_sources.png}\\
+		\caption{Областта, която ползваме за числени симулации. За единични събития са симулирани всички възможни комбинации вариантите без пукнатина и с 1 пукнатина (винаги лявата), която може да е празна или пълна с вода и кой да е единичен източник (червените точки). За региона с две пукнатини са направени една симулация с едно събитие (източникът е {300,900}), за която и двете пукнатини са празни, и симулации с две едновременни събития, които са описани в легендата.}\label{pic:region_with_sources}
+	\end{figure}
+	
+	 \begin{landscape}
+		
+		\begin{figure}[!h]
+			\centering
+			% First row
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_0cavities_300_10_source.pdf}
+				\caption{Източник в \{300, 10\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_0cavities_300_600_source.pdf}
+				\caption{Източник в \{300, 600\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_0cavities_300_700_source.pdf}
+				\caption{Източник в \{300, 700\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_0cavities_300_850_source.pdf}
+				\caption{Източник в \{300, 850\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_0cavities_300_900_source.pdf}
+				\caption{Източник в \{300, 900\}}
+			\end{subfigure}
+			
+			% Second row
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1air_cavity_300_10_source.pdf}
+				\caption{Източник в \{300, 10\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1air_cavity_300_600_source.pdf}
+				\caption{Източник в \{300, 600\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1air_cavity_300_700_source.pdf}
+				\caption{Източник в \{300, 700\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1air_cavity_300_850_source.pdf}
+				\caption{Източник в \{300, 850\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1air_cavity_300_900_source.pdf}
+				\caption{Източник в \{300, 900\}}
+			\end{subfigure}
+			\caption{Различните синтетични сеизмограми, създадени върху модела за ледник Балкан, част 1. Ред 1 са сеизмограми без пукнатини, а ред 2 са сеизмограми с 1 пукнатина, пълна с въздух.}\label{fig:example_events1}
+		\end{figure}
+		
+	\end{landscape}    
+	
+	
+	 \begin{landscape}
+	
+		\begin{figure}[!h]
+			\centering
+			% Third row
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1water_cavity_300_10_source.pdf}
+				\caption{Източник в \{300, 10\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1water_cavity_300_600_source.pdf}
+				\caption{Източник в \{300, 600\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1air_cavity_300_700_source.pdf}
+				\caption{Източник в \{300, 700\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1water_cavity_300_850_source.pdf}
+				\caption{Източник в \{300, 850\}}
+			\end{subfigure}
+			\begin{subfigure}{0.18\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_1water_cavity_300_900_source.pdf}
+				\caption{Източник в \{300, 900\}}
+			\end{subfigure}
+			
+			% Fourth row
+			\begin{subfigure}{0.23\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/1event_2air_cavity_300_900_source.pdf}
+				\caption{Източник в \{300, 900\}}
+			\end{subfigure}
+			\begin{subfigure}{0.23\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/2event_2air_cavity_(300_380)_900_source.pdf}
+				\caption{Източници в \{300, 900\} и \{380, 900\}}
+			\end{subfigure}
+			\begin{subfigure}{0.23\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/2event_2air_cavity_300_(780_900)_source.pdf}
+				\caption{Източници в \{300, 900\} и \{300, 780\}}
+			\end{subfigure}
+			\begin{subfigure}{0.23\linewidth}
+				\includegraphics[width=\linewidth]{displacement_500x900_25_layer_0_600_900_10Hz_tau=0.00025/2event_2water_cavity_300_(780_900)_source.pdf}
+				\caption{Източници в \{300, 900\} и \{300, 780\}}
+			\end{subfigure}
+			\caption{Различните синтетични сеизмограми, създадени върху модела за ледник Балкан, част 2. Ред 1 са пукнатина, пълна с вода, на ред 2 всички са с 2 пукнатини, като първите 3 са с по 2 пълни с въздух, а последната е с 2 пукнатини, пълни с вода.}\label{fig:example_events2}
+		\end{figure}
+	\end{landscape}  
+	
+	\subsection{Сравнение на метода с аналитични решения}\label{analytical_solutions}
+	В своята статия J. Walters \cite{walters2020analytic} извежда аналитични решения за двуизмерното сеизмично вълново уравнение при конкретни начални условия и хомогенна среда. 
+	След това проверява тези аналитични решения спрямо числените си в област, която представлява квадрат със страна $10000~m$, в която всички гранични условия са ''изкуствени'', 
+	тоест се очаква вълната да ги третира като среда, а не граница. Той моделира това с Perfectly matched layers(PML - \cite{randall1988_absorbing_wave_equation},	\cite{givoli2004_highorder_nrbcs}) - изкуствен слой с широчина $2000~m$ и затихващ ефект, използван при моделирането на вълнови уравнения, за да симулира отворен регион 
+	(потиска отразените и повърхностните вълни). Също така авторът показва, че PML се справя значително по-добре от други методи за пренебрегване на изкуствената граница.
+	
+	Към програмата \texttt{FEM2D} е добавен режим, чиято цел е да сравни точността ѝ спрямо представените аналитични решения. Режимът се нарича ''Analytical''\ и подобно на статията счита за ''изкуствени''\ всички гранични възли - за разлика от нея обаче не прилага затихване на амплитудите в околност на границата, а вместо това директно занулява стойностите на отместването във възлите по самата граница във всеки слой от времето. Това е направено като временно решение с цел да се заобиколи проблема най-лесно без да се имплементира PML.
+	
+	Режимът ''Analytical'' се различава от останалите режими на \texttt{FEM2D} по това, че вместо източник ползва начално условие, което в различните симулации се задава да е началното условие на тествания случай от статията.
+	
+	Изследвани са 2 типа начални условия (2 постановки), като за първия тип е извършена една симулация, а за втория - 3 симулации.
+	
+	И в двете постановки областта е квадрат със страна $8~km$, в която има $20518$ възела, и е триангулирана чрез софтуера \texttt{Wolfram Mathematica} на $40394$ елемента. Най-дългото ребро е с дължина $212~ m$, а най-късото ребро - $87~m$. Лицето на произволен елемент (триъгълник) е не повече от $10000~m^2$ или $0.1~km^2$. Стъпката по времето е както в статията - $0.005~s$.
+	
+	В първата постановка се сравнява спрямо аналитично решение, за което има затворена формула и което поражда единствено компресивни P вълни. Във втората постановка се сравнява спрямо аналитично решение, за което няма затворена формула - то създава както компресивни P, така и S-вълни. Изобразените графики показват вълните само в квадрат със страна $3~km$, защото при по-големи мащаби вградената функция на \texttt{Wolfram Mathematica}, с която се изобразяват, спира да изобразява вълните гладко. 
+	\\Конкретните параметри за средата в първата постановка не са посочени изрично в статията, но са свързани със скоростите на двата типа вълни, като $V_p=\sqrt{\beta}=\sqrt{\frac{2\mu+\lambda}{\rho}}, V_s=\sqrt{\alpha}=\sqrt{\frac{\mu}{\rho}}$. Избират се стойности $ \rho=1000~kg/m^3, \lambda=1\,GPa, \mu=0\,Pa$, което влече параметрите: $V_p=1~km/s, V_s=0~km/s$. Разглеждат се следните начални условия:
+	
+	\begin{align}
+		u_X(x,y) = \frac{d}{dx}\left(\frac{1}{(1+x^2)(1+y^2)}\right)=\frac{-2x}{(1+x^2)^2(1+y^2)},\\
+		u_Y(x,y) = \frac{d}{dy}\left(\frac{1}{(1+x^2)(1+y^2)}\right)=\frac{-2y}{(1+x^2)(1+y^2)^2},
+	\end{align}
+	за които се намира аналитично решение:
+	\begin{align*}
+		u^X(x,y,t)=\frac{1}{4i}\sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}\int_0^{\pi/2}\frac{mcos\phi}{(cos\phi+sin\phi+i(mx cos\phi+py sin\phi+n\beta t))^3}d\phi,\\
+		u^Y(x,y,t)=\frac{1}{4i}\sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}\int_0^{\pi/2}\frac{mcos\phi}{(cos\phi+sin\phi+i(my cos\phi-px sin\phi+n\beta t))^3}d\phi.
+	\end{align*}
+	
+	Във фигура \ref{fig:3_row_plot_closed} са показани (както в самата статия) графиките на аналитичното, численото решение и разликата между двете решения. Тук под решения се има предвид сумата от квадратите на $u_x$ и $u_y$ или дължината на вектора на отместване, повдигната на втора степен.
+	
+	За сравнение се използва $L^2$ нормата на векторите, защото отразява порядъка на грешката глобално за областта (за разлика от $L^\infty$).
+	Същата симулация е пусната и с различни $\mu$ и $\lambda$, които пораждат същите скорости на вълни и резултатите са сходни.\\
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=1\linewidth]{analytical_numerical_comparison.png}
+		\caption{От горе надолу: аналитичното, численото решения и тяхната разлика в моменти от време от ляво надясно 0, 1, 2, 3, 4. Изобразена е нормата на квадрат на отместването във всяка точка за дадения момент от време. Постановка с начално условие, което води до затворена форма на решението.}
+		\label{fig:3_row_plot_closed}
+	\end{figure}
+	\FloatBarrier
+	Началните условия за втората постановка:
+	
+	\begin{align}
+		u^X(x,y,0) = F_0\frac{\partial}{\partial x}(e^{-(x^2+y^2)/a^2})=-\frac{2xF_0}{a^2}e^{-(x^2+y^2)/a^2},\\
+		u^Y(x,y,0) = G_0\frac{\partial}{\partial y}(e^{-(x^2+y^2)/a^2})=-\frac{2yG_0}{a^2}e^{-(x^2+y^2)/a^2}
+	\end{align}
+	пораждат решение, което няма затворена формула. Решението в момент t изглежда по следния начин:
+	\begin{align}
+		u^X(x,y,t)=-\frac{1}{2}a^2\frac{x}{r^3}\left(x^2F_0+y^2G_0\right)B_2(r,t)\notag{}\\
+		-\frac{1}{2}a^2(F_0-G_0)\left(\frac{xy^2}{r^3}A_2(r,t)
+		+\frac{2x(x^2-3y^2)}{r^5}\left(A_1(r,t)-B_1(r,t)\right)
+		-\frac{x(x^2-3y^2)}{r^4}\left(A_3(r,t) - B_3(r,t)\right)\right),\label{eq:walters1}\\
+		u^Y(x,y,t)=-\frac{1}{2}a^2\frac{y}{r^3}(x^2F_0+y^2G_0)B_2(r,t)\\
+		+\frac{1}{2}a^2(F_0-G_0)\left(\frac{x^2y}{r^3}A_2(r,t)+\frac{2y(y^2-3x^2)}{r^5}\left(A_1(r,t)-B_1(r,t)\right)
+		-\frac{y(y^2-3x^2)}{r^4}\left(A_3(r,t)-B_3(r,t)\right)\right).\label{eq:walters2}
+	\end{align}
+	Тук $r=\sqrt{x^2+y^2}$, а помощните функции са:
+	\begin{align}
+		A_1(r,t)=\int_0^\infty e^{-\frac{1}{4}a^2k^2}cos(kt\sqrt{\alpha})J_1(kr)dk,\\
+		A_2(r,t)=\int_0^\infty e^{-\frac{1}{4}a^2k^2}cos(kt\sqrt{\alpha})k^2J_1(kr)dk,\\
+		A_3(r,t)=\int_0^\infty e^{-\frac{1}{4}a^2k^2}cos(kt\sqrt{\alpha})kJ_0(kr)dk,\\
+		B_1(r,t)=\int_0^\infty e^{-\frac{1}{4}a^2k^2}cos(kt\sqrt{\beta})J_1(kr)dk,\\
+		B_2(r,t)=\int_0^\infty e^{-\frac{1}{4}a^2k^2}cos(kt\sqrt{\beta})k^2J_1(kr)dk,\\
+		B_3(r,t)=\int_0^\infty e^{-\frac{1}{4}a^2k^2}cos(kt\sqrt{\beta})kJ_0(kr)dk,
+	\end{align}
+	където $J_0(kr)$ и $J_1(kr)$ са функциите на Бесел от първи вид съответно нулев и първи ред \cite{abramowitz1964handbook}. Уравнението \ref{eq:walters2} се различава с един знак от съответстващото в статията \cite{walters2020analytic}, защото беше установена грешка в него от дипломанта, която впоследствие беше потвърдена от авторите на статията - оказва се, че грешката е само печатна и не влияе на по-нататъшните резултати от статията. Самата тя беше открита при сравнение на началното условие с получената формула в момент 0. Интегралите (съответно и $u^X$ и $u^Y$) се пресмятат числено в момент $t$ - за целта е имплементирана съставна квадратурна формула на трапеците, като интегралите се изчисляват само в интервала от $0$ до $90$, който е разбит на $200$ подинтервала (както в статията). Тук времето отново е $\tau=0.005\,s, V_p=1.5\,km/s, V_s=0.5\, km/s, \rho=1000\,kg/m^3$, което влече $\lambda=1.75\,GPa, \mu=0.25\,GPa$. Извършените симулации са $3$ - първата с $a=0.1,~F_0=1,~G_0=0$, втората с $a=1,~F_0=1,~G_0=1$ и третата с $a=1,~F_0=1,~G_0=1$, съответно изобразени на фигури \ref{fig:analytic_non_closed_a=0.1}, \ref{fig:analytic_non_closed_a=1} и \ref{fig:analytic_non_closed_a=1g0=1}.\\
+	\FloatBarrier
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=1\textwidth]{analytical_non_closed_small_source.png}\\
+		\caption{От горе надолу: аналитичното, численото решения и тяхната разлика в моменти от време от ляво надясно 0, 1, 2, 3, 4. Изобразена е нормата на квадрат на отместването във всяка точка за дадения момент от време. Постановка с начално условие с параметри $a=0.1,F_0=1,G_0=0$.
+		}
+		\label{fig:analytic_non_closed_a=0.1}
+	\end{figure}
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=1\textwidth]{analytical_non_closed_vs_numerical.png}
+		\caption{От горе надолу: аналитичното, численото решения и тяхната разлика в моменти от време от ляво надясно 0, 1, 2, 3, 4. Изобразена е нормата на квадрат на отместването във всяка точка за дадения момент от време. Постановка с начално условие с параметри $a=1,F_0=1,G_0=0$.
+			\label{fig:analytic_non_closed_a=1}}
+	\end{figure}
+    \FloatBarrier
+    
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=1\textwidth]{f1g1a1_crop.pdf}
+		\caption{От горе надолу: аналитичното, численото решения и тяхната разлика в моменти от време от ляво надясно 0, 1, 2, 3, 4. Изобразена е нормата на квадрат на отместването във всяка точка за дадения момент от време. Постановка с начално условие с параметри $a=1,F_0=1,G_0=1$.
+			\label{fig:analytic_non_closed_a=1g0=1}}
+	\end{figure}
+	\FloatBarrier
+
+	Вижда се, че първата симулация е много неточна, докато втората е значително по-близо до аналитичното решение. Това най-вероятно се дължи на факта, че първото начално условие е много по-концентрирано, докато второто е по-разсеяно и има повече възли за неговия пик.
+	
+	Получените относителни грешки на симулираните резултати спрямо аналитичните решения са показни на фигура \ref{fig:relative_errors} в моменти от $0$ до $4$ включително.
+	
+	\begin{figure}[!h]
+		\centering
+		% First row
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{relative_err_closed.pdf}
+			\caption{Относителни грешки за моменти $t$ за постановка 1}
+		\end{subfigure}
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{relative_err_f1g0a0.1.pdf}
+			\caption{Относителни грешки за моменти $t$ за постановка 2}
+		\end{subfigure}
+		
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{relative_err_f1g0a1.pdf}
+			\caption{Относителни грешки за моменти $t$ за постановка 3}
+		\end{subfigure}
+		\begin{subfigure}{0.45\linewidth}
+			\includegraphics[width=\linewidth]{relative_err_f1g1a1.pdf}
+			\caption{Относителни грешки за моменти $t$ за постановка 4}
+		\end{subfigure}
+		
+		\caption{Развитие на относителните грешки във времето.}
+		\label{fig:relative_errors}
+	\end{figure}
+	
+	\subsection{Практическа оценка на грешката}\label{subsec:practical_error}
+	Важно е да знаем какъв е редът на сходимост на създадения метод - това е добра насока дали той е достатъчно добър или трябва да се разгледа по-сложно $V_h$. Работейки с 
+	неструктурирана мрежа, извеждането на теоретичен ред на сходимост представлява трудна задача, но за сметка на това намирането на практическа оценка на грешката чрез метода на Рунге \cite{dimova2010numerical} 
+	е сравнително лесно.
+
+	Практическа оценка на грешката е изчислена спрямо максимална дължина на ребро. Използва се конфигурацията на експеримента с аналитичното решение. 
+	\texttt{FEM2D} се пуска за конкретната конфигурация и дадена мрежа, след което се намира грешката спрямо аналитичното решение - за грешка могат да бъдат взети много величини, 
+	но за целта на дипломната работа се използват нормите в момент $t=4$. След това мрежата се раздробява - на всеки елемент се добавят възли на средите на страните му и 
+	се свързват. По този начин всяка страна е разделена на 2 равни части.
+	Получената мрежа съдържа всички възли от първоначалната мрежа и максималното най-дългото ребро е 2 пъти по-късо от най-дългото ребро в по-едрата мрежа.
+	\texttt{FEM2D} се пуска за новополучената мрежа и резултатът се сравнява по същия начин с аналитичното решение.
+	
+	Друго възможно раздробяване е свързването на всеки връх с медицентъра на триъгълника, което би довело до 3 равнолицеви триъгълника. За него би могло да се използва максимално лице на елемент вместо най-дълго ребро. В крайна сметка е избран първият тип раздробяване, защото при раздробяването на даден триъгълник четирите получени триъгълника са подобни на него. Това значи, че качеството на мрежата остава същото, което допълнително допринася за правдоподобните резултати от експеримента. От друга страна, вторият вариант гарантира влошаване на качеството на мрежата.
+	
+	\begin{figure}[!h]
+	\centering
+	\begin{minipage}{0.45\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{mesh_coarse.png}
+	\end{minipage}\hfill
+	\begin{minipage}{0.45\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{mesh_fine.png}
+	\end{minipage}
+	\caption{Две мрежи, с които се провежда експеримента. Мрежата отдясно е създадена от мрежата отляво, като са свързани средите на страните на всеки елемент в нея.}
+	\label{fig:mesh_comparison}
+	\end{figure}
+
+	На теория редът на сходимост е $O(h^p)=Ch^p$, където $h$ е най-дългото ребро на елемент в мрежата и $p$ е степента на сходимост. За първата мрежа е получено $err_i = Ch^p$, 
+	а за втората $err_{i+1}=C(\frac{h}{2})^2=\frac{Ch^p}{2^p}$. Тогава $\frac{err_{i}}{err_{i+1}}=2^p$. След логаритмуване се получава $log(err_i)-log(err_{i+1})=log(2)p$. 
+	Финално $p=\frac{log(err_i)-log(err_{i+1})}{log(2)}$.
+
+	Самото раздробяване на мрежата е имплементирано на \texttt{C++}, защото \texttt{Wolfram Mathematica} изпитва значителни затруднения при боравене с мрежи с повече елементи.
+	Имплементацията на раздробяването е включена в Приложение \ref{sec:mesh_refinement}. Мрежата е намалена многократно, като максималното лице на елемент се премина през стойностите $1.28,0.32,0.08,0.02$, а минималните ребра съответно през $1.04,0.52,0.26,0.13$. На \ref{fig:runge_relative_errors} са изобразени относителните грешки спрямо минималното ребро за всяка мрежа, а на \ref{fig:runge_p_vals} - стойностите на $p$ между всеки две мрежи. 
+	
+	\begin{figure}[!h]
+		\centering
+		\begin{minipage}{0.33\linewidth}
+			\centering
+			\includegraphics[width=\linewidth]{rungef1g0.pdf}
+		\end{minipage}\hfill
+		\begin{minipage}{0.33\linewidth}
+			\centering
+			\includegraphics[width=\linewidth]{rungef1g1.pdf}
+		\end{minipage}
+		\begin{minipage}{0.33\linewidth}
+			\centering
+			\includegraphics[width=\linewidth]{runge_closed.pdf}
+		\end{minipage}
+		\caption{Относителната грешка като функция на минималното ребро за всяка постановка. Ляво - $G_0=0$. Среда - $G_0=1$. Дясно - затворена формула.}
+		\label{fig:runge_relative_errors}
+	\end{figure}
+	
+	\begin{figure}[!h]
+		\centering
+		\begin{minipage}{0.33\linewidth}
+			\centering
+			\includegraphics[width=\linewidth]{runge_p_10.pdf}
+		\end{minipage}\hfill
+		\begin{minipage}{0.33\linewidth}
+			\centering
+			\includegraphics[width=\linewidth]{runge_p_11.pdf}
+		\end{minipage}
+		\begin{minipage}{0.33\linewidth}
+			\centering
+			\includegraphics[width=\linewidth]{runge_p_closed.pdf}
+		\end{minipage}
+		\caption{Ред на сходимост за всяка постановка спрямо номер на сравнение(между мрежа i и мрежа i+1, която се получава от мрежа i). Ляво - $G_0=0$. Среда - $G_0=1$. Дясно - затворена формула.}
+		\label{fig:runge_p_vals}
+	\end{figure}
+	
+	В заключение може да се отбележи, че \texttt{FEM2D} се справя значително по-добре с P-вълните - средно първи ред на сходимост, докато в решенията, които включват S-вълни, не чак толкова - там $p\approx\frac{1}{3}$. Това е възможно да се дължи на по-сложното естество на S-вълните или на грешка в имплементацията. Причината трябва да бъде разследвана в бъдеще.
+	
+	\section{Бъдеща разработка}
+	Пътят до получаване на максимално коректен метод ще бъде дълъг и няма как да бъде обхванат в рамките на настоящата дипломна работа. Тук е поставена една солидна основа, върху която ще бъде надграждано. Има няколко основни посоки, в които може да се подобри трудът, в текущата подглава те ще бъдат само изброени и впоследствие редът на имплементирането им ще се реши в зависимост от това кои биха допринесли най-много за подобряването на резултатите. 
+	
+	\begin{enumerate}
+		\item \textbf{Разширяване на размерността} \\
+		Очевиден недостатък на \texttt{FEM2D} е заложен още в името му – симулациите му поддържат само двумерна област. Естествена следваща стъпка е преминаването към триизмерен МКЕ, 
+		което би позволило геометрията на ледника да се доближи максимално до реалната.
+
+		\item \textbf{Паралелизиране} \\
+		Преминаването към триизмерни симулации би довело системи с много по-големи размерности, което би увеличило значително времето за симулации. Това може да породи нуждата за паралелизиране на 
+		алгоритъма или функцията за решаване на линейната система.
+
+		\item \textbf{Използване на базисни функции от по-висок ред} \\
+		Настоящата реализация използва линейни полиноми като базис. Увеличаването на реда на апроксимиращите функции би повишило точността на симулациите, макар и с цената на по-големи изчислителни ресурси.
+		
+		\item \textbf{Алтернативни числени методи} \\
+		Перспективна посока е и експериментирането с прекъснатия метод на Гальоркин (Discontinuous Galerkin), който е широко използван в областта на сеизмичните симулации и може да предложи 
+		по-голяма гъвкавост при работа със сложни среди и гранични условия.
+
+		\item \textbf{Усъвършенстване на времевата дискретизация} \\
+		Изследването на схеми по времето с по-висок ред може да покаже дали те водят до по-точни крайни решения и до по-добро поведение при дълги симулации. Схемите от тип предиктор-коректор също биха представлявали интерес.
+		
+		\item \textbf{Имплементация на Perfectly matched layers} \\
+		Настоящата имплементация директно занулява отместванията във възлите по границата, което внася грешка в численото решение. Тази грешка би могла да се намали, ако вместо директно зануляване се внася приглушаване на отместването.
+		
+		\item \textbf{Ходограф} \\
+		Допълнителна верификация на правилното действие на \texttt{FEM2D} спрямо реални данни би могла да се осъществи чрез сравнение с USGS Earthquake Travel Times, където има конкретни скорости за P и S-вълни при конкретни разстояния между източник и получател.
+		
+		\item \textbf{Имплементация на акустично вълново уравнение за пукнатините, пълни с въздух} \\
+		Настоящата имплементация третира пукнатините, пълни с въздух, като регион, който не е част от слоя. Интересно би било тези резултати да се сравнят с резултатите, когато в региона на пукнатините се решава акустичното вълново уравнение.
+		
+		\item \textbf{Конфигурационни подобрения} \\
+		Към момента \texttt{FEM2D} не приема честотата и силата на източника през конфигурационен файл. Параметрите на средите също не се подават чрез конфигурационен файл, а освен това са и във формата на параметри на Ламé - стандартно е да се ползват коефициент на Поасон и модул на Юнг.
+		
+		\item \textbf{Преобразование на резултатите} \\
+		Преобразуване на отместването в радиални и вертикални компоненти, както в \cite{Komatitsch2002}.
+		
+		\item \textbf{Подобрения, свързани с източниците} \\
+		Силата и честотата на всички източници засега е еднаква и всички започват да действат от момент $0$, но симулации, в които това не е така, биха представлявали интерес в бъдеще. Освен това в бъдеще може да бъде направен честотен анализ на реалните сеизмограми и да бъде определен интервал, от който да бъдат избирани честотите.
+		
+		\item \textbf{Комбиниране с алгоритми от областта на машинното обучение} \\
+		\texttt{FEM2D} може да се използва и за генериране на тестови данни (източници и сеизмограми), които да послужат за обучаване на невронни мрежи. Подобни модели могат впоследствие да се приложат за определяне на характеристиките на реални земетресения и ледотресения.
+	\end{enumerate}
+	 
+	 
+	\section{Заключение}
+	Разработена е програма, чрез която са направени числени симулации на вълнови форми в ледник. Тя е тествана спрямо аналитични решения със серия начални условия, направен е анализ за различни размери на мрежа и стъпки по времето. В резултат са получени вълнови форми, някои от които изглеждат като реално регистрирани от сеизмичната станция LIVV. Тъй като самите процеси, които генерират ледотресения, все още не са добре изучени, резултатът от тази дипломна работа и разработеният код биха били добра основа за бъдещи анализ и изучаване на регистрираните вълнови форми.
+	 
+	\section{Приложение}
+	\subsection{Примерни конфигурационни файлове}\label{app:configs}
+	
+	\subsubsection{Режим \texttt{Halfspace}}
+	\begin{verbatim}
+		useMfemMatrices=0
+		debug=0
+		sourceElement=-1 + Null
+		sourceEpicentre=170, 17
+		sourceRadius= 1.1
+		seismographIndices = -1 + Null
+		mcm=0.01
+		tau=0.0004
+		Tmax=600
+		modelProblem=Halfspace
+		
+		cavityFilling=a
+		allNodes=0
+		depths=-8, -11, 8
+		left=-8
+		right=8
+		cavityIndices=
+	\end{verbatim}
+	
+	\subsubsection{Режим \texttt{Layered}}	
+	
+	\begin{verbatim}
+		useMfemMatrices=0
+		debug=0
+		sourceElement=1
+		sourceEpicentre=130000, 199000
+		sourceRadius= 500
+		seismographIndices=50
+		mcm=10000000
+		tau=0.5
+		Tmax=300
+		modelProblem=Layered
+		
+		cavityFilling=a
+		allNodes=0
+		depths=0, 120000, 150000
+		left=0
+		right=300000
+		cavityIndices=
+	\end{verbatim}
+	\subsubsection{Режим \texttt{Analytical}}	
+	Режим \texttt{Analytical} не използва параметрите \texttt{seismographIndices}, \texttt{cavityFilling}, втория елемент на \texttt{depths}, \texttt{cavityIndices}- именно затова някои от тях са с невалидни стойности.
+	\begin{verbatim}
+		useMfemMatrices=0
+		debug=0
+		sourceElement=-1 + Null
+		sourceEpicentre=170, 17
+		sourceRadius= 0
+		seismographIndices=-1 + Null
+		mcm=0.06
+		tau=0.001
+		Tmax=4
+		modelProblem=Analytical
+		cavityFilling=a
+		allNodes=4
+		depths=-8, 600, 8
+		left=-8
+		right=8
+		cavityIndices=
+	\end{verbatim}
+	
+	\subsection{Примерни матрици в \texttt{MFEM} и \texttt{Eigen} формат и запис на разредените матрици}\label{subsec:example_formats}
+	
+	Настоящата глава разглежда локалната матрица на масата за референтния елемент $E$ в двата възможни записа. Освен самите локални матрици се показват и техните разредени записи.
+	\subsubsection{\texttt{Eigen} формат}
+	Локалната матрица изглежда по следния начин:
+	\begin{align*}
+		M_{Eigen} = \begin{pmatrix}
+			50 & 0 & 25 & 0 & 25 & 0\\
+			0 & 50 & 0 & 25 & 0 & 25\\
+			25 & 0 & 50 & 0 & 25 & 0\\
+			0 & 25 & 0 & 50 & 0 & 25\\
+			25 & 0 & 25 & 0 & 50 & 0\\
+			0 & 25 & 0 & 25 & 0 & 50\\
+		\end{pmatrix}.
+	\end{align*}
+	Същата матрица, записана в разреден формат изглежда по следния начин:
+	\begin{verbatim}
+		0, 0, 50
+		0, 2, 25
+		0, 4, 25
+		
+		1, 1, 50
+		1, 3, 25
+		1, 5, 25
+		
+		2, 0, 25
+		2, 2, 50
+		2, 4, 25
+		
+		3, 1, 25
+		3, 3, 50
+		3, 5, 25
+		
+		4, 0, 25
+		4, 2, 25
+		4, 4, 50
+		
+		5, 1, 25
+		5, 3, 25
+		5, 5, 50
+	\end{verbatim}
+	\subsubsection{\texttt{MFEM} формат}
+	Локалната матрица, форматирана в \texttt{MFEM} формата, изглежда по следния начин:
+	\begin{align*}
+		M_{MFEM} = \begin{pmatrix}
+			50 & 25 & 25 & 0 & 0 & 0\\
+			25& 50 & 25 & 0 & 0 & 0\\
+			25 & 25 & 50 & 0 & 0 & 0\\
+			0 & 0 & 0 & 50 & 25 & 25\\
+			0 & 0 & 0 & 25 & 50 & 25\\
+			0 & 0 & 0 & 25 & 25 & 50\\
+		\end{pmatrix}.
+	\end{align*}
+	Разреденият ѝ формат е:
+	\begin{verbatim}
+		0, 0, 50
+		0, 1, 25
+		0, 2, 25
+		
+		1, 0, 25
+		1, 1, 50
+		1, 2, 25
+		
+		2, 0, 25
+		2, 1, 25
+		2, 2, 50
+		
+		3, 3, 50
+		3, 4, 25
+		3, 5, 25
+		
+		4, 3, 25
+		4, 4, 50
+		4, 5, 25
+		
+		5, 3, 25
+		5, 4, 25
+		5, 5, 50
+	\end{verbatim}
+	
+	\subsection{Затворена формула}
+	\[u^X(x,y,t) = \sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}(\frac{S_1+S_2+S_3+S_4+S_5}{8D_1^4D_2^2D_3}+\frac{S_6S_7}{4D_1^5}),\]
+	където помощните функции са
+	\begin{equation}
+		\begin{aligned}
+			S_1&=m[3in\beta t(2-\beta^2t^2)+2\beta^4t^4-3\beta^2t^2+r^4-8r^2+4],\\
+			S_2&=n\beta^3t^3(4x-mpy),\\
+			S_3&=3\beta^2t^2(mx^2-my^2+pxy+impy-3ix),\\
+			S_4&=n\beta t[2x^3-xy^2-13x+mpy(4x^2+y^2-5)-2i(3pxy+5mx^2+my^2)],\\
+			S_5&=-8pxy-4i(r^2-2)(x+mpy),\\
+			S_6&=3n\beta t(x-mi),\\
+			S_7&=ArcTanh(\frac{i-py}{D_1})+ArcTanh(\frac{n\beta t-mx+py}{D_1}),\\
+			D_1&=\sqrt{r^2-\beta^2 t^2-2-2i(mx+py)},\\
+			D_2&=n\beta t+mx-i,\\
+			D_3&=n\beta t+py-i,\\
+			r&=\sqrt{x^2+y^2}.
+		\end{aligned}
+	\end{equation}
+	Формулата за $u^Y(x,y,t)$ е идентична, но $(x,y)$ са заменени с $(y,-x)$:\\
+	\[u^Y(x,y,t)=\sum_{m=\pm1}\sum_{n=\pm1}\sum_{p=\pm1}(\frac{T_1+T_2+T_3+T_4+T_5}{8E_1^4E_2^2E_3}+\frac{T_6T_7}{4E_1^5})\], където
+	\begin{equation}
+		\begin{aligned}
+			T_1&=m[3in\beta t(2-\beta^2t^2)+2\beta^4t^4-3\beta^2t^2+r^4-8r^2+4],\\
+			T_2&=n\beta^3t^3(4y+mpx),\\
+			T_3&=3\beta^2t^2(my^2-mx^2-pxy-impx-3iy),\\
+			T_4&=n\beta t[2y^3-yx^2-13y-mpx(4y^2+x^2-5)-2i(5my^2+mx^2-3pxy)],\\
+			T_5&=8pxy-4i(r^2-2)(y-mpx),\\
+			T_6&=3n\beta t(y-mi),\\
+			T_7&=ArcTanh(\frac{i+px}{E_1})+ArcTanh(\frac{n\beta t-my-px}{E_1}),\\
+			E_1&=\sqrt{r^2-\beta^2t^2-2-2i(my-px)},\\
+			E_2&=n\beta t+my-i,\\
+			E_3&=n\beta t-px-i,\\
+			r&=\sqrt{x^2+y^2}.
+		\end{aligned}
+	\end{equation}
+	
+	\subsection{Код за раздробяване на мрежа}\label{sec:mesh_refinement}
+	
+	\lstinputlisting[language=C++, caption={Раздробяване на мрежа}]{customComparatorOfGlobalMatrices.cpp}
+	
+	
+	\bibliographystyle{plain} % or another style like ieee, apa, etc.
+	\bibliography{references}
+	\bibliographystyle{alpha}
+
+\end{document}
